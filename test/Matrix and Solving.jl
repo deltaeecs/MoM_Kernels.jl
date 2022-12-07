@@ -31,6 +31,6 @@ function test_matrix_solving(geosInfo, bfsInfo)
     ch   =   solve!(Zopt, ICoeff, V; solverT = :gmres!, Pl = Zprel);
     @test true
 
-    nothing
+    ICoeff
 
 end
