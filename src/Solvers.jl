@@ -93,12 +93,33 @@ function solve!(A::LinearMapType{T}, x::AbstractVector{T}, b::AbstractVector{T};
     ICoeff, ch       =   solver(x, A, b; restart = restart, abstol = resnormtol, Pl = Pl, Pr = Pr,  log = true, verbose=true, maxiter = maxiter)
     saveCurrent(ICoeff; str = str)
 
-    return ch
-    # catch
-    #     ICoeff, ch       =   solver(A, b; abstol = resnormtol, Pl = Pl, log = true, verbose=true, max_mv_products = 1000)
-    #     # 绘图
-    #     convergencePlot(ch.data[:resnorm], solverT)
-    #     return ICoeff, ch
-    # end
+    # 相对残差结果
+    relresnorm  =   ch.data[:resnorm] / resnorm0
+
+    # 命令行绘图
+    SimulationParams.SHOWIMAGE  &&  convergencePlot(relresnorm)
+
+    # 将相对残差写入文件
+    open(joinpath(SimulationParams.resultDir, "$(solverT)_ch$str.txt"), "w") do io
+        for resi in relresnorm
+            write(io, "$resi\n" )
+        end
+    end
+
+    return ICoeff, ch
+
+end
+
+"""
+计算完成后绘制收敛曲线
+"""
+function convergencePlot(resnorm::Vector{FT}) where{FT<:Real}
+
+    figCnvergence = lineplot(resnorm, yscale = :log10, ylim = (minimum(resnorm), 1), xlabel = "Epoch", title = "Relative ResNorm - Epoch")
+
+    SimulationParams.SHOWIMAGE  &&  display(figCnvergence)
+
+    return 
+
 end
 

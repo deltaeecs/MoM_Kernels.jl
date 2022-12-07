@@ -10,7 +10,7 @@ using .Threads, ThreadsX, FLoops, FoldsThreads
 using LinearAlgebra, Statistics
 using FastGaussQuadrature, SpecialFunctions, GSL, LegendrePolynomials
 using IncompleteLU, IterativeSolvers
-
+using UnicodePlots
 
 export  getOctreeAndReOrderBFs!,
         calZnearCSC, getImpedanceMatrix,
@@ -18,8 +18,9 @@ export  getOctreeAndReOrderBFs!,
         MLMFAIterator,
         SAIPrec, SAIChunkPrec,
         sparseApproximateInversePl, sparseApproximateInversePr,
-        solve, solve!
-
+        solve, solve!,
+        geoElectricJCal, electricJCal, raditionalIntegralNCal,
+        radarCrossSection, RCSPlot, farField, farEPlot
 
 # MLFMA参数
 include("MLFMA/MLFMAParams.jl")
@@ -31,5 +32,8 @@ include("FastAlgorithm.jl")
 
 # 求解函数
 include("Solvers.jl")
+
+# 后处理
+include("PostProcess/PostProcessing.jl")
 
 end
