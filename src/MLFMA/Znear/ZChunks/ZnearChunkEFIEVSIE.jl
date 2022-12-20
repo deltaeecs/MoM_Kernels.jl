@@ -304,24 +304,6 @@ function calZnearChunksCFIELW!(cubes, geosInfo1::AbstractVector{T1}, geosInfo2::
 
 end # function
 
-"""
-采用 RWG + PWC 基函数计算指定层内 EFIE 体面积分（VSIE）阻抗矩阵近场元并将结果放在 ZnearChunk 中 (分布式)
-"""
-function calZnearChunksEFIET!(cubes, geosInfo1::AbstractVector{T1}, geosInfo2::AbstractVector{T2},
-    ZnearChunks, bfT::Type{BFT}) where {T1 <: VSCellType, T2 <: VSCellType, BFT<:LinearBasisFunction}
-    
-    nChunks =   length(ZnearChunks)
-    pmeter  =   Progress(nChunks, "Calculating Z Chunks")
-    @threads  for i in 1:nChunks
-        calZnearChunkEFIEonCube!(i, cubes, geosInfo1, geosInfo2, ZnearChunks[i], bfT)
-        next!(pmeter)
-    end
-
-    nothing
-
-end # function
-
-
 
 """
 采用 RWG + PWC + PWC 基函数计算 三角形 + 四面体 + 六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在Znear稀疏矩阵中

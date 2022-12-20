@@ -174,24 +174,6 @@ function initialZnearChunks(cube, cubes::AbstractVector; CT = Complex{Precision.
 end
 
 """
-根据八叉树盒子信息初始化 cube 对应的近场矩阵元块儿
-"""
-function initialZnearChunksT(level; nbf, CT = Complex{Precision.FT})
-
-    cubes   =   level.cubes
-    # 盒子数
-    nCube   =   length(cubes)
-    # 预分配
-    chunks = Vector{MatrixChunk{CT}}(undef, nCube)
-    # 分配内存
-    @threads for i in 1:nCube
-        chunks[i]  =   initialZnearChunks(cubes[i], cubes; CT = CT)
-    end
-    
-    return ZnearChunksStruct{CT}(chunks; m = nbf, n = nbf)
-end
-
-"""
 计算某一块的矩阵向量乘积
 """
 function ZnearChunkMulIVec!(ZnearChunk, resultChunk, IVec)
@@ -299,22 +281,7 @@ function calZnearCSC!(level, geosInfoV::AbstractVector{VT},
 end
 
 """
-给出参数计算矩阵近场元并保存在 ZnearChunks 矩阵中
-"""
-function calZnearChunks(level, geosInfo::AbstractVector, 
-    bfsInfo::AbstractVector)
-    
-    println("计算矩阵近场元 ZnearChunks 格式稀疏矩阵中...")
-    # 初始化 ZnearChunks 矩阵
-    ZnearChunks = initialZnearChunksT(level)
-    # 计算矩阵
-    calZnearChunksT!(level.cubes, geosInfo, ZnearChunks)
-
-    return ZnearChunks
-end
-
-"""
-根据积分方程类型选择相应计算函数（分布式）
+根据积分方程类型选择相应计算函数
 """
 function calZnearChunks!(cubes, geosInfo::AbstractVector{VSCellT}, 
     ZnearChunks, bfT::Type{BFT} = VSBFTypes.sbfType) where {BFT<:BasisFunctionType, VSCellT<:SurfaceCellType}
@@ -332,7 +299,7 @@ function calZnearChunks!(cubes, geosInfo::AbstractVector{VSCellT},
 end
 
 """
-根据积分方程类型选择相应计算函数（分布式）
+根据积分方程类型选择相应计算函数
 """
 function calZnearChunks!(cubes, geosInfo::AbstractVector{VSCellT}, 
     ZnearChunks, bfT::Type{BFT} = VSBFTypes.vbfType) where {BFT<:BasisFunctionType, VSCellT<:VolumeCellType}
@@ -342,7 +309,7 @@ function calZnearChunks!(cubes, geosInfo::AbstractVector{VSCellT},
 end
 
 """
-根据积分方程类型选择相应计算函数（分布式）
+根据积分方程类型选择相应计算函数
 """
 function calZnearChunks!(cubes, geosInfo::AbstractVector{VT}, 
     ZnearChunks, bfT::Type{BFT} = VSBFTypes.vbfType) where {BFT<:BasisFunctionType, VT<:AbstractVector}
@@ -351,45 +318,6 @@ function calZnearChunks!(cubes, geosInfo::AbstractVector{VT},
 
     nothing
 end
-
-"""
-根据积分方程类型选择相应计算函数（多线程）
-"""
-function calZnearChunksT!(cubes, geosInfo::AbstractVector{VSCellT}, 
-    ZnearChunks, bfT::Type{BFT} = VSBFTypes.sbfType) where {BFT<:BasisFunctionType, VSCellT<:SurfaceCellType}
-    if SimulationParams.ieT == :EFIE
-        # 计算 RWG下 的 EFIE 阻抗矩阵
-        calZnearChunksEFIET!(cubes, geosInfo, ZnearChunks.chunks, bfT)
-    elseif SimulationParams.ieT == :MFIE
-        # 计算 RWG下 的 MFIE 阻抗矩阵
-        calZnearChunksMFIET!(cubes, geosInfo, ZnearChunks.chunks, bfT)
-    elseif SimulationParams.ieT == :CFIE
-        # 计算 RWG下 的 CFIE 阻抗矩阵
-        calZnearChunksCFIET!(cubes, geosInfo, ZnearChunks.chunks, bfT)
-    end
-    return nothing
-end
-"""
-根据积分方程类型选择相应计算函数（多线程）
-"""
-function calZnearChunksT!(cubes, geosInfo::AbstractVector{VSCellT}, 
-    ZnearChunks, bfT::Type{BFT} = VSBFTypes.vbfType) where {BFT<:BasisFunctionType, VSCellT<:VolumeCellType}
-    # 计算 SWG/PWC/RBF 下的 EFIE 阻抗矩阵
-    calZnearChunksEFIET!(cubes, geosInfo, ZnearChunks.chunks, bfT)
-    nothing
-end
-"""
-根据积分方程类型选择相应计算函数（多线程）
-"""
-function calZnearChunksT!(cubes, geosInfo::AbstractVector{VT}, 
-    ZnearChunks, bfT::Type{BFT} = VSBFTypes.vbfType) where {BFT<:BasisFunctionType, VT<:AbstractVector}
-    # 计算 RWG + PWC/RBF 下的 EFIE 阻抗矩阵
-    calZnearChunksEFIET!(cubes, geosInfo..., ZnearChunks.chunks, bfT)
-
-    nothing
-end
-
-
 
 # 各类信息
 include("ZnearEFIE.jl")

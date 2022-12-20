@@ -1040,39 +1040,3 @@ function calZnearChunksEFIELW!(cubes, geosInfo1::AbstractVector{T1}, geosInfo2::
     nothing
 
 end # function
-
-
-"""
-采用 基函数计算指定层内 EFIE 阻抗矩阵近场元并将结果放在 ZnearChunk 中 (分布式)
-"""
-function calZnearChunksEFIET!(cubes, geosInfo::AbstractVector{GT},
-    ZnearChunks, bfT::Type{BFT}) where {GT<:VSCellType, BFT<:BasisFunctionType}
-    
-    nChunks =   length(ZnearChunks)
-    pmeter  =   Progress(nChunks, "Calculating Z Chunks")
-    # 计算
-    @threads for i in 1:nChunks
-        calZnearChunkEFIEonCube!(i, cubes, geosInfo, ZnearChunks[i], bfT)
-        next!(pmeter)
-    end
-
-    nothing
-
-end # function
-
-"""
-采用 基函数计算指定层内 EFIE 阻抗矩阵近场元并将结果放在 ZnearChunk 中 (分布式)
-"""
-function calZnearChunksEFIET!(cubes, geosInfo1::AbstractVector{GT1}, geosInfo2::AbstractVector{GT2},
-    ZnearChunks, bfT::Type{BFT}) where {GT1<:VSCellType, GT2<:VSCellType, BFT<:BasisFunctionType}
-    
-    nChunks =   length(ZnearChunks)
-    pmeter  =   Progress(nChunks, "Calculating Z Chunks")
-    @threads for i in 1:nChunks
-        calZnearChunkEFIEonCube!(i, cubes, geosInfo1, geosInfo2, ZnearChunks[i], bfT)
-        next!(pmeter)
-    end
-
-    nothing
-
-end # function
