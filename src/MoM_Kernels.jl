@@ -14,7 +14,6 @@ using UnicodePlots
 
 export  getOctreeAndReOrderBFs!,
         calZnearCSC, getImpedanceMatrix,
-        calZnearChunks!,
         getExcitationVector, getImpedanceMatAndExciteV,
         MLMFAIterator,
         SAIPrec, SAIChunkPrec,
