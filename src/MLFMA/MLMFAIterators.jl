@@ -10,8 +10,8 @@ include("AggregateOnLevel.jl")
 mutable struct MLMFAIterator{T<:Number, VT<:AbstractVector}
     octree          ::OctreeInfo
     Znear           ::AbstractMatrix{T}
-    vsCellsInfo     ::Vector
-    bfsInfo         ::Vector
+    vsCellsInfo     ::CellT where {CellT<:AbstractVector}
+    bfsInfo         ::BFT where {BFT<:AbstractVector}
     aggSBF          ::AbstractArray{T}
     disaggSBF       ::AbstractArray{T}
     ZI              ::VT
