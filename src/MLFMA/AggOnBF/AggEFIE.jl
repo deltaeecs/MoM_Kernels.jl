@@ -135,8 +135,8 @@ end
 """
 计算某层聚合项, 输入为四面体信息和 SWG 基函数信息
 """
-function aggSBFOnLevel(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
-    bfsInfo) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
+function aggSBFOnLevel(level::LT, geosInfo::AbstractVector{VT}, 
+    bfsInfo::AbstractVector{BFT}) where {LT<:LevelInfo, VT<:VolumeCellType, BFT<:BasisFunctionType}
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -145,10 +145,11 @@ function aggSBFOnLevel(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, 
     nPoles  =   polesIndices.stop
     # 预分配内存
     nbf     =   length(bfsInfo)
+    FT      =   typeof(level.cubeEdgel)
     aggSBF  =   zeros(Complex{FT}, nPoles, 2, nbf)
     disaggSBF   =   zeros(Complex{FT}, nPoles, 2, nbf)
     # 计算
-    aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo, eltype(bfsInfo))
+    aggSBFOnLevel!(aggSBF, disaggSBF, level, geosInfo, eltype(bfsInfo))
 
     return aggSBF, disaggSBF
 end
@@ -365,26 +366,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{Tet
     return nothing
 end
 
-"""
-计算某层聚合项, 输入为六面体信息和 PWC 基函数信息
-"""
-function aggSBFOnLevel(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}}, 
-    bfsInfo) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
-    # 层采样点
-    polesr̂sθsϕs =   level.poles.r̂sθsϕs
-    # poles索引
-    polesIndices    =   eachindex(polesr̂sθsϕs)
-    # 采样多极子数量
-    nPoles  =   polesIndices.stop
-    # 预分配内存
-    nbf    =   length(bfsInfo)
-    aggSBF  =   zeros(Complex{FT}, nPoles, 2, nbf)
-    disaggSBF   =   zeros(Complex{FT}, nPoles, 2, nbf)
-    # 计算
-    aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo, eltype(bfsInfo))
 
-    return aggSBF, disaggSBF
-end
 
 """
 计算某层聚合项, 输入为六面体信息和 PWC 基函数信息
