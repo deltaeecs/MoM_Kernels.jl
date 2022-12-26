@@ -82,7 +82,7 @@ function Base.:*(Z::T, x::AbstractVector) where{T<:MatrixChunk}
 
     mul!(Z.rmul, Z.mat, Z.lmul)
 
-    return Z.rmul
+    return copy(Z.rmul)
 end
 
 function LinearAlgebra.mul!(y, Z::T, x::AbstractVector) where{T<:MatrixChunk}

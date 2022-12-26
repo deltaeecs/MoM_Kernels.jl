@@ -1,6 +1,3 @@
-spmul!  =   (@isdefined MKLSparse) ? MKLSparse.BLAS.mul! : SparseArrays.mul!
-
-
 ## 本文件的函数用于构建迭代算子
 include("AggregateOnLevel.jl")
 

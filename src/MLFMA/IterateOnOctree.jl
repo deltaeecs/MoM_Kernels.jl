@@ -78,8 +78,8 @@ function agg2HighLevel!(tLevel, kLevel)
                 kIn8    =   cube.kidsIn8[jkCube]
                 
                 # 将子盒子的辐射积分进行插值，必须按先 ϕ 后 θ 的顺序
-                @views spmul!(aggSInterpedϕ1, ϕCSC, kAggS[:, :, kCubeID])
-                spmul!(aggSInterped1, θCSC, aggSInterpedϕ1)
+                @views mul!(aggSInterpedϕ1, ϕCSC, kAggS[:, :, kCubeID])
+                mul!(aggSInterped1, θCSC, aggSInterpedϕ1)
 
                 # 插值完毕进行子层到本层的相移，累加进父盒子聚合项
                 @views tAggS[:,:,iCube]   .+=   phaseShiftFromKids[:,kIn8] .* aggSInterped1
@@ -110,8 +110,8 @@ function agg2HighLevel!(tLevel, kLevel)
                 # 将子盒子的辐射积分进行插值，必须按先 ϕ 后 θ 的顺序
                 # @views aggSInterpedϕ .= ϕCSC*kAggS[:, :, kCubeID]
                 # @views aggSInterped  .= θCSC*aggSInterpedϕ
-                @views spmul!(aggSInterpedϕ2, ϕCSC, kAggS[:, :, kCubeID])
-                spmul!(aggSInterped2, θCSC, aggSInterpedϕ2)
+                @views mul!(aggSInterpedϕ2, ϕCSC, kAggS[:, :, kCubeID])
+                mul!(aggSInterped2, θCSC, aggSInterpedϕ2)
 
                 # 插值完毕进行子层到本层的相移，累加进父盒子聚合项
                 @views tAggS[:,:,iCube]   .+=   phaseShiftFromKids[:,kIn8] .* aggSInterped2
@@ -249,8 +249,8 @@ function disagg2KidLevel!(tLevel, kLevel)
 
                 # 进行本层到子层的相移，累加进父盒子聚合项
                 @views disGshifted1 .= phaseShift2Kids[:,kIn8] .* tCubeDisaggG
-                spmul!(disGInterpedθ1, θCSCT, disGshifted1)
-                spmul!(disGInterped1, ϕCSCT, disGInterpedθ1)
+                mul!(disGInterpedθ1, θCSCT, disGshifted1)
+                mul!(disGInterped1, ϕCSCT, disGInterpedθ1)
                 # @views kdisAggGAnterped = ϕCSCT*(θCSCT*(phaseShift2Kids[:,kIn8] .* tCubeDisaggG))
                 kDisAggG[:,:,kCubeID]   .+=  disGInterped1
             end # jkCube
@@ -282,8 +282,8 @@ function disagg2KidLevel!(tLevel, kLevel)
 
                 # 进行本层到子层的相移，累加进父盒子聚合项
                 @views disGshifted2 .= phaseShift2Kids[:,kIn8] .* tCubeDisaggG
-                spmul!(disGInterpedθ2, θCSCT, disGshifted2)
-                spmul!(disGInterped2, ϕCSCT, disGInterpedθ2)
+                mul!(disGInterpedθ2, θCSCT, disGshifted2)
+                mul!(disGInterped2, ϕCSCT, disGInterpedθ2)
 
                 # @views kdisAggGAnterped     =   ϕCSCT*(θCSCT*(phaseShift2Kids[:,kIn8] .* tCubeDisaggG))
                 kDisAggG[:,:,kCubeID]     .+=   disGInterped2
