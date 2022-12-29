@@ -84,4 +84,4 @@ function LinearAlgebra.mul!(y, Zopt::MLMFAIterator, x)
 
 end
 
-Base.:*(opt::MLMFAIterator, x) = mul!(copy(opt.ZI), opt, x)
+Base.:*(opt::MLMFAIterator, x) = mul!(deepcopy(opt.ZI), opt, x)
