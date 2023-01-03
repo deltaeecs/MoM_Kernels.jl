@@ -18,7 +18,7 @@ export  getOctreeAndReOrderBFs!,
         MLMFAIterator,
         SAIPrec, SAIChunkPrec,
         sparseApproximateInversePl, sparseApproximateInversePr,
-        solve, solve!,
+        solve, solve!, saveCurrent, loadCurrent,
         geoElectricJCal, electricJCal, raditionalIntegralNCal,
         radarCrossSection, RCSPlot, farField, farEPlot
 
