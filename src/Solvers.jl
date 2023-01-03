@@ -30,7 +30,7 @@ A::Matrix{T}, b::Vector{T}
 solverT::Symbol  求解器类型
 """
 function solve(A::LinearMapType{T}, b::AbstractVector{T};
-    solverT::Symbol, Pl = Identity(), Pr = Identity(), rtol = 1e-3,
+    solverT::Symbol=:gmres, Pl = Identity(), Pr = Identity(), rtol = 1e-3,
     maxiter = 1000, str = "", restart = 200) where{T<:Number}
     # 直接求解
     solverT  == :direct  && begin
@@ -67,7 +67,7 @@ A::Matrix{T}, b::Vector{T}
 solverT::Symbol  求解器类型
 """
 function solve!(A::LinearMapType{T}, x::AbstractVector{T}, b::AbstractVector{T}; 
-    solverT::Symbol, Pl = Identity(), Pr = Identity(), rtol = 1e-3, 
+    solverT::Symbol = :gmres!, Pl = Identity(), Pr = Identity(), rtol = 1e-3, 
     maxiter = 1000, str = "", restart = 200) where{T<:Number}
     # 直接求解
     solverT  == :direct  && begin
