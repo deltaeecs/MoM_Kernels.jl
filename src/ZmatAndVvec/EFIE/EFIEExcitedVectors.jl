@@ -332,3 +332,22 @@ function excitationVectorEFIE(source::ST, geosInfo::Vector{VT}, nbf::Integer) wh
     # 返回
     return V
 end # function
+
+
+"""
+计算平面波在 基函数 上的激励向量
+输入：
+source          ::ST, 平面波源
+tetrasInfo      ::Vector{TetrahedraInfo{IT, FT, CT}}，保存六面体信息的向量
+nbf             ::Integer，基函数数量  
+"""
+function excitationVectorEFIE!(V::AbstractVector, source::ST, geosInfo::Vector{VT}) where{ST<:ExcitingSources, VT<:AbstractVector}
+
+    # 开始对网格类型（三角形、四边形）循环计算
+    for geo in geosInfo
+        # 网格类型相关激励向量
+        excitationVectorEFIE!(V, source, geo, getBFTfromCellT(eltype(geo)))
+    end # for geo
+    # 返回
+    return V
+end # function
