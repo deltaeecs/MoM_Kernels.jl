@@ -20,7 +20,12 @@ export  getOctreeAndReOrderBFs!,
         sparseApproximateInversePl, sparseApproximateInversePr,
         solve, solve!, saveCurrent, loadCurrent,
         geoElectricJCal, electricJCal, raditionalIntegralNCal,
-        radarCrossSection, RCSPlot, farField, farEPlot
+        radarCrossSection, RCSPlot, farField, farEPlot,
+        ParallelParams, set_nprocs!, GeosInterval,
+        getMeshDataSaveGeosInterval, set_geosInterval!,
+        saveGeosInfoChunks, saveVec2Chunks, getNeighborCubeIDs,
+        saveOctree, saveCubes, saveLevel,
+        PartitionedVector
 
 # MLFMA参数
 include("MLFMA/MLFMAParams.jl")
@@ -35,5 +40,8 @@ include("Solvers.jl")
 
 # 后处理
 include("PostProcess/PostProcessing.jl")
+
+# 扩展
+include("Extends.jl")
 
 end
