@@ -148,10 +148,11 @@ function saveOctree(octree; dir="")
         @info "Saving Level $(nLevels - iLevel) / $nLevels."
         level = levels[iLevel]
         kcubeIndices = saveLevel(level; dir=dir, kcubeIndices = kcubeIndices)
-        # data[:levelsname] = joinpath(dir, "Level")
-        push!(ks, :levelsname)
-        push!(vals, joinpath(dir, "Level"))
     end
+
+    # data[:levelsname] = joinpath(dir, "Level")
+    push!(ks, :levelsname)
+    push!(vals, joinpath(dir, "Level"))
 
     jldsave(joinpath(dir, "Octree.jld2"), data = (; zip(ks, vals)...))#data)
 
