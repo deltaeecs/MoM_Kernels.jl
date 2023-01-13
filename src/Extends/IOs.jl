@@ -129,24 +129,31 @@ function saveOctree(octree; dir="")
 
     !ispath(dir) && mkpath(dir)
 
-    data = Dict{Symbol, Any}()
+    # data = Dict{Symbol, Any}()
+    ks = Symbol[]
+    vals = []
 
     fieldsKeept = (:nLevels, :leafCubeEdgel, :bigCubeLowerCoor)
 
     @floop for k in fieldsKeept
-        data[k] = getfield(octree, k)
+        # data[k] = getfield(octree, k)
+        push(ks, k)
+        push(vals, getfield(octree, k))
     end
 
     nLevels = octree.nLevels
     levels = octree.levels
     kcubeIndices = nothing
     for iLevel in nLevels:-1:1
+        @info "Saving Level $(nLevels - iLevel) / $nLevels."
         level = levels[iLevel]
         kcubeIndices = saveLevel(level; dir=dir, kcubeIndices = kcubeIndices)
-        data[:levelsname] = joinpath(dir, "Level")
+        # data[:levelsname] = joinpath(dir, "Level")
+        push(ks, :levelsname)
+        push(vals, joinpath(dir, "Level"))
     end
 
-    jldsave(joinpath(dir, "Octree.jld2"), data = data)
+    jldsave(joinpath(dir, "Octree.jld2"), data = (; zip(ks, vals)...))#data)
 
 end
 
@@ -211,6 +218,8 @@ function saveCubes(cubes, nchunk = ParallelParams.nprocs; name, dir="", kcubeInd
     # 拿到各块的包含邻盒子的id
     cubesFarNeighbors_ChunksIndices    =   ThreadsX.mapi(chunkIndice -> getNeiFarNeighborCubeIDs(cubes, chunkIndice), indices)
 
+    pmeter  =  Progress(length(indices), "Saving cubes...")
+
     @floop for (i, indice) in enumerate(indices)
         data = OffsetVector(cubes[indice...], indice...)
         idcs = indice[1]
@@ -226,6 +235,8 @@ function saveCubes(cubes, nchunk = ParallelParams.nprocs; name, dir="", kcubeInd
         ghostdata = sparsevec(ghostindices, cubes[ghostindices])
         cubes_i = PartitionedVector{eltype(cubes)}(length(cubes), data, idcs, ghostdata, ghostindices)
 		jldsave(joinpath(dir, "$(name)_part_$i.jld2"), data = cubes_i)
+
+        next!(pmeter)
 	end
 
     return indices
