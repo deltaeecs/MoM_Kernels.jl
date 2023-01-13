@@ -137,8 +137,8 @@ function saveOctree(octree; dir="")
 
     @floop for k in fieldsKeept
         # data[k] = getfield(octree, k)
-        push(ks, k)
-        push(vals, getfield(octree, k))
+        push!(ks, k)
+        push!(vals, getfield(octree, k))
     end
 
     nLevels = octree.nLevels
@@ -149,8 +149,8 @@ function saveOctree(octree; dir="")
         level = levels[iLevel]
         kcubeIndices = saveLevel(level; dir=dir, kcubeIndices = kcubeIndices)
         # data[:levelsname] = joinpath(dir, "Level")
-        push(ks, :levelsname)
-        push(vals, joinpath(dir, "Level"))
+        push!(ks, :levelsname)
+        push!(vals, joinpath(dir, "Level"))
     end
 
     jldsave(joinpath(dir, "Octree.jld2"), data = (; zip(ks, vals)...))#data)
