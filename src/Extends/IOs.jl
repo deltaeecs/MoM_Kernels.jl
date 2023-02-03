@@ -228,7 +228,7 @@ function saveCubes(cubes, nchunk = ParallelParams.nprocs; name, dir="", kcubeInd
         # 子盒子与本层盒子区间错位时也会产生 ghost 数据需要保存在本地
         !isnothing(kcubeIndices) && begin
             tCubesInterval  =   last(searchsorted(cubes, first(kcubeIndices[i]); by = func4Cube1stkInterval)):first(searchsorted(cubes, last(kcubeIndices[i]); by = func4CubelastkInterval))
-            otherGhostIdcs = setdiff(tCubesInterval, indice)
+            otherGhostIdcs  =   setdiff(tCubesInterval, indice[1])
             # 将此部分 idcs 补充进来
             unique!(sort!(append!(ghostindices, otherGhostIdcs)))    
         end
