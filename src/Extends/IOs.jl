@@ -63,7 +63,7 @@ function saveGeosInfoChunks(geos::AbstractVector, cubes, name::AbstractString, n
     # 拿到包含邻盒子内的该块的所有几何信息 id
     geoInfo_chunks_indices  =   ThreadsX.mapi(chunkIndice -> getGeoIDsInCubeChunk(cubes, chunkIndice), cubesNeighbors_ChunksIndices)
     # 保存
-    saveVec2Chunks(geos, name, geoInfo_chunks_indices; dir = dir)
+    saveVec2Chunks(geos, name, geoInfo_chunks_indices; dir = dir, showpmeter = true, message = "GeosInfo")
 
     nothing
 
@@ -106,12 +106,14 @@ end
     把向量分块保存。
 TBW
 """
-function saveVec2Chunks(y::AbstractVector, name::AbstractString, indices; dir = "")
+function saveVec2Chunks(y::AbstractVector, name::AbstractString, indices; dir = "", showpmeter = false, message = "")
 
 	!ispath(dir) && mkpath(dir)
 
+    pmeter = Progress(length(indices); desc = "Saving $message...", enabled = showpmeter)
 	@floop for (i, indice) in enumerate(indices)
 		jldsave(joinpath(dir, "$(name)_part_$i.jld2"), data = y[indice...], size = (length(y), ), indice = indice)
+        next!(pmeter)
 	end
 
 	nothing
@@ -145,7 +147,7 @@ function saveOctree(octree; dir="")
     levels = octree.levels
     kcubeIndices = nothing
     for iLevel in nLevels:-1:1
-        @info "Saving Level $(nLevels - iLevel) / $nLevels."
+        @info "Saving level $(nLevels - iLevel + 1) / $nLevels."
         level = levels[iLevel]
         kcubeIndices = saveLevel(level; dir=dir, kcubeIndices = kcubeIndices)
     end
@@ -221,16 +223,18 @@ function saveCubes(cubes, nchunk = ParallelParams.nprocs; name, dir="", kcubeInd
 
     pmeter  =  Progress(length(indices), "Saving cubes...")
 
+    # 重新组合 kcubeIndices，以避免层间分区不在同一维度时 子盒子区间计算错误
+    kindices =  isnothing(kcubeIndices) ? nothing : sizeChunks2idxs(length(kcubeIndices), nchunk)
     @floop for (i, indice) in enumerate(indices)
         data = OffsetVector(cubes[indice...], indice...)
         idcs = indice[1]
         ghostindices::Vector{Int} = setdiff(cubesFarNeighbors_ChunksIndices[i][1], indice[1])
         # 子盒子与本层盒子区间错位时也会产生 ghost 数据需要保存在本地
         !isnothing(kcubeIndices) && begin
-            tCubesInterval  =   last(searchsorted(cubes, first(kcubeIndices[i]); by = func4Cube1stkInterval)):first(searchsorted(cubes, last(kcubeIndices[i]); by = func4CubelastkInterval))
+            tCubesInterval  =   last(searchsorted(cubes, first(kcubeIndices[first(kindices[i][1])]); by = func4Cube1stkInterval)):first(searchsorted(cubes, last(kcubeIndices[last(kindices[i][1])]); by = func4CubelastkInterval))
             otherGhostIdcs  =   setdiff(tCubesInterval, indice[1])
             # 将此部分 idcs 补充进来
-            unique!(sort!(append!(ghostindices, otherGhostIdcs)))    
+            unique!(sort!(append!(ghostindices, otherGhostIdcs)))
         end
 
         ghostdata = sparsevec(ghostindices, cubes[ghostindices])
