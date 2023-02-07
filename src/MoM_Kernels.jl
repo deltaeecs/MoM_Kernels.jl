@@ -12,7 +12,8 @@ using FastGaussQuadrature, SpecialFunctions, GSL, LegendrePolynomials
 using IncompleteLU, IterativeSolvers
 using UnicodePlots
 
-export  getOctreeAndReOrderBFs!,
+export  inputParameters,
+        getOctreeAndReOrderBFs!,
         calZnearCSC, getImpedanceMatrix,
         getExcitationVector, getImpedanceMatAndExciteV,
         MLMFAIterator,
@@ -26,6 +27,8 @@ export  getOctreeAndReOrderBFs!,
         saveGeosInfoChunks, saveVec2Chunks, getNeighborCubeIDs,
         saveOctree, saveCubes, saveLevel,
         PartitionedVector
+# 输入函数
+include("Inputs.jl")
 
 # MLFMA参数
 include("MLFMA/MLFMAParams.jl")
