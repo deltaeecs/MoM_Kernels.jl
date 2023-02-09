@@ -7,9 +7,9 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(Sₜ (∑ₜₙ₌₁³ Iₙlₙρₙ/(2Sₙ))exp(jkr̂(θ, ϕ)⋅rₙ) )
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙlₙρₙ/2)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
-function radarCrossSection(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT},
-    ICoeff::Vector{CT}, trianglesInfo::Vector{ST}, ::Type{BFT} = VSBFTypes.sbfType) where {FT<:Real, CT<:Complex, ST<:TriangleInfo, BFT<:RWG}
-
+function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, 
+    trianglesInfo::Vector{ST}, ::Type{BFT} = VSBFTypes.sbfType) where {CT<:Complex, ST<:TriangleInfo, BFT<:RWG}
+    FT = Precision.FT
     # 高斯求积点电流权重乘积
     Jtris       =   electricJCal(ICoeff, trianglesInfo)
     # 常数
@@ -60,9 +60,9 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(Sₜ (∑ₜₙ₌₁³ Iₙsₙρₙ/(3Vₙ))exp(jkr̂(θ, ϕ)⋅rₙ) )
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙsₙρₙ/3)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
-function radarCrossSection(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT},
-    ICoeff::Vector{CT}, geosInfo::Vector{VT}, bfT::Type{BFT} = VSBFTypes.vbfType) where {FT<:Real, VT<:VolumeCellType, CT<:Complex, BFT<:BasisFunctionType}
-
+function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vector{VT}, 
+                            bfT::Type{BFT} = VSBFTypes.vbfType) where {VT<:VolumeCellType, CT<:Complex, BFT<:BasisFunctionType}
+    FT = Precision.FT
     # 高斯求积点电流权重乘积
     Jgeos       =   geoElectricJCal(ICoeff, geosInfo, bfT)
     # 常数
@@ -111,9 +111,9 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(Sₜ (∑ₜₙ₌₁³ Iₙsₙρₙ/(3Vₙ))exp(jkr̂(θ, ϕ)⋅rₙ) )
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙsₙρₙ/3)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
-function radarCrossSection(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT},
-    ICoeff::Vector{CT}, geosInfo::Vector{VT}) where {FT<:Real, CT<:Complex, VT<:AbstractVector}
-
+function radarCrossSection(θs_obs, ϕs_obs,
+    ICoeff::Vector{CT}, geosInfo::Vector{VT}) where {CT<:Complex, VT<:AbstractVector}
+    FT = Precision.FT
     # 面网格、体网格
     tris    =   geosInfo[1]
     geosV   =   geosInfo[2]
@@ -177,7 +177,7 @@ end # end function
 """
 RCS 绘图
 """
-function RCSPlot(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT}, RCS::Matrix{FT}, RCSdB::Matrix{FT};  str = "") where{FT<:Real}
+function RCSPlot(θs_obs, ϕs_obs, RCS::Matrix{FT}, RCSdB::Matrix{FT};  str = "") where{FT<:Real}
     
     θs_obs_deg  =   θs_obs/pi*180
     ϕs_obs_deg  =   ϕs_obs/pi*180 #[2:end-1]

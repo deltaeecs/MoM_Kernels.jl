@@ -7,10 +7,11 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(Sₜ (∑ₜₙ₌₁³ Iₙlₙρₙ/(2Sₙ))exp(jkr̂(θ, ϕ)⋅rₙ) )
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙlₙρₙ/2)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
-function farField(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT},
+function farField(θs_obs, ϕs_obs,
     ICoeff::Vector{CT}, trianglesInfo::Vector{ST}, source, ::Type{BFT} = VSBFTypes.sbfType; str::String = "") where {
-        FT<:Real, CT<:Complex, ST<:TriangleInfo, BFT<:RWG}
+    CT<:Complex, ST<:TriangleInfo, BFT<:RWG}
 
+    FT = Precision.FT
     # 高斯求积点电流权重乘积
     Jtris       =   electricJCal(ICoeff, trianglesInfo)
     Nθ_obs      =   length(θs_obs)
@@ -61,8 +62,9 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(Sₜ (∑ₜₙ₌₁³ Iₙsₙρₙ/(3Vₙ))exp(jkr̂(θ, ϕ)⋅rₙ) )
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙsₙρₙ/3)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
-function farField(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT},
-    ICoeff::Vector{CT}, geosInfo::Vector{VT}, source, bfT::Type{BFT}= VSBFTypes.vbfType; str::String = "") where {FT<:Real, VT<:VolumeCellType, CT<:Complex, BFT<:BasisFunctionType}
+function farField(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vector{VT}, source, 
+    bfT::Type{BFT}= VSBFTypes.vbfType; str::String = "") where {VT<:VolumeCellType, CT<:Complex, BFT<:BasisFunctionType}
+    FT = Precision.FT
 
     # 高斯求积点电流权重乘积
     Jgeos       =   geoElectricJCal(ICoeff, geosInfo, bfT)
@@ -115,8 +117,9 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(Sₜ (∑ₜₙ₌₁³ Iₙsₙρₙ/(3Vₙ))exp(jkr̂(θ, ϕ)⋅rₙ) )
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙsₙρₙ/3)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
-function farField(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT},
-    ICoeff::Vector{CT}, geosInfo::Vector{VT}, source; str::String = "") where {FT<:Real, CT<:Complex, VT<:AbstractVector}
+function farField(θs_obs, ϕs_obs,
+    ICoeff::Vector{CT}, geosInfo::Vector{VT}, source; str::String = "") where {CT<:Complex, VT<:AbstractVector}
+    FT = Precision.FT
     # 面网格、体网格
     tris    =   geosInfo[1]
     geosV   =   geosInfo[2]
@@ -178,8 +181,8 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(Sₜ (∑ₜₙ₌₁³ Iₙlₙρₙ/(2Sₙ))exp(jkr̂(θ, ϕ)⋅rₙ) )
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙlₙρₙ/2)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
-function farField(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT}, source; str::String = "") where {FT<:Real}
-
+function farField(θs_obs, ϕs_obs, source; str::String = "")
+    FT = Precision.FT
     Nθ_obs      =   length(θs_obs)
     Nϕ_obs      =   length(ϕs_obs)
 
@@ -235,7 +238,7 @@ end # end function
 """
 farE 绘图
 """
-function farEPlot(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT}, farE::Matrix{FT}, farEdB::Matrix{FT}; str::String = "") where{FT<:Real}
+function farEPlot(θs_obs, ϕs_obs, farE::Matrix{FT}, farEdB::Matrix{FT}; str::String = "") where{FT<:Real}
     
     θs_obs_deg  =   θs_obs/pi*180
     ϕs_obs_deg  =   ϕs_obs/pi*180

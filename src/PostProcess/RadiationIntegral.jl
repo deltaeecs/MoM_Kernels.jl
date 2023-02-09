@@ -210,10 +210,8 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(Sₜ (∑ₜₙ₌₁³ Iₙlₙρₙ/(2Sₙ))exp(jkr̂(θ, ϕ)⋅rₙ) )
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙlₙρₙ/2)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
-function raditionalIntegralNCal(θs_obs::LinRange{FT}, ϕs_obs::LinRange{FT},
-                                            geosInfo::Vector{TriangleInfo{IT, FT}},
-                                            Jgeos::Array{CT}) where {IT<:Integer, FT<:Real, CT<:Complex}
-
+function raditionalIntegralNCal(θs_obs, ϕs_obs, geosInfo::Vector{TriangleInfo{IT, FT}},
+                                Jgeos::Array{CT}) where {IT<:Integer, FT<:Real, CT<:Complex}
 
     # 观测角度信息
     Nθ_obs      =   length(θs_obs)
