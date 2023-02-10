@@ -187,7 +187,7 @@ function interpolationCSCMatCal(pLevelPoles::PolesInfo{FT}, tLevelPoles::PolesIn
     # 先计算 θ 方向
 
     # 判断插值点是否过多
-    nlocalInterp > npXθs && throw("插值点数设置过多！")
+    nlocalInterp > npXθs && throw("插值点数设置过多！(一般是频率与网格不匹配，输入频率太低导致。)")
     # θ方向父层坐标在本层坐标的区间位置pInt
     pθsIntθs    =   cooraInCoorb(pXθs, tXθs)
 
