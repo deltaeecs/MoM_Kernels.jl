@@ -61,24 +61,19 @@ function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         cube    =   cubes[iCube]
         ineiIDs =   cube.neighbors
 
-        # 本盒子所有基函数的 id
+        # 本盒子与所有邻盒子基函数的 id
         neibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, ineiIDs))
-        # 本盒子所有基函数的数量
+        # 本盒子所有邻盒子基函数的数量
         nNeibfs = length(neibfs)
 
-        # 本盒子与所有邻盒子 id
+        # 本盒子与所有邻及其邻盒子 id
         iNeisNeiIDs  = reduce(vcat, map(i -> cubes[i].neighbors, ineiIDs))
         unique!(sort!(iNeisNeiIDs))
 
-        # 本盒子所有基函数的 id
+        # 本盒子与所有邻盒子及其邻盒子基函数的 id
         neisNeibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, iNeisNeiIDs))
-        # 本盒子所有基函数的数量
+        # 本盒子与所有邻盒子及其邻盒子基函数的数量
         nNeisNeibfs = length(neisNeibfs)
-
-        # 本盒子基函数
-        cbfs        =   cube.bfInterval
-        # 本盒子基函数起始点在 nneibfs 的位置
-        cbfsInCnnei =   cbfs .+ (searchsortedfirst(neisNeibfs, cbfs.start) - cbfs.start)
 
         # 提取对应的阻抗矩阵
         # Znn     =   zeros(CT, nNeibfs, nNeisNeibfs)
@@ -148,35 +143,21 @@ function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         cube    =   cubes[iCube]
         ineiIDs =   cube.neighbors
 
-        # 本盒子所有基函数的 id
+        # 本盒子与所有邻盒子基函数的 id
         neibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, ineiIDs))
-        # 本盒子所有基函数的数量
+        # 本盒子所有邻盒子基函数的数量
         nNeibfs = length(neibfs)
 
-        # 本盒子所有基函数的 id
-        # cneibfs::Vector{Int}     =   vcat([collect(cubes[ineiID].bfInterval) for ineiID in ineiIDs]...)
-        
-        # 本盒子与所有邻盒子 id
+        # 本盒子与所有邻及其邻盒子 id
         iNeisNeiIDs  = reduce(vcat, map(i -> cubes[i].neighbors, ineiIDs))
         unique!(sort!(iNeisNeiIDs))
-        # iNeisNeiIDs::Vector{Int} =   unique(sort!(vcat([cubes[ineiID].neighbors for ineiID in ineiIDs]...)))
 
-        # 本盒子所有基函数的 id
+        # 本盒子与所有邻盒子及其邻盒子基函数的 id
         neisNeibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, iNeisNeiIDs))
-        # 本盒子所有基函数的数量
+        # 本盒子与所有邻盒子及其邻盒子基函数的数量
         nNeisNeibfs = length(neisNeibfs)
-        
-        # 本盒子以及邻盒子的基函数 ids 数量
-        # cnneibfs::Vector{Int}    =   vcat([collect(cubes[ineiID].bfInterval) for ineiID in iNeisNeiIDs]...)
-        
-        # 本盒子基函数
-        cbfs        =   cube.bfInterval
-        # 本盒子基函数起始点在 nneibfs 的位置
-        cbfsInCnnei =   cbfs .+ (searchsortedfirst(neisNeibfs, cbfs.start) - cbfs.start)
 
         # 提取对应的阻抗矩阵
-        # Znn     =   zeros(CT, nNeisNeibfs, nNeibfs)
-                # Znn     =   zeros(CT, nNeibfs, nNeisNeibfs)
         # Znn 保存在预分配内存里
         Znnt    =   Znnts[threadid()]
         length(Znnt) < nNeibfs*nNeisNeibfs && resize!(Znnt, nNeibfs*nNeisNeibfs)
