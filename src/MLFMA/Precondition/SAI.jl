@@ -75,6 +75,11 @@ function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         # 本盒子与所有邻盒子及其邻盒子基函数的数量
         nNeisNeibfs = length(neisNeibfs)
 
+        # 本盒子基函数
+        cbfs        =   cube.bfInterval
+        # 本盒子基函数起始点在 nneibfs 的位置
+        cbfsInCnnei =   cbfs .+ (searchsortedfirst(neisNeibfs, cbfs.start) - cbfs.start)
+        
         # 提取对应的阻抗矩阵
         # Znn     =   zeros(CT, nNeibfs, nNeisNeibfs)
         # Znn 保存在预分配内存里
@@ -157,6 +162,11 @@ function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         # 本盒子与所有邻盒子及其邻盒子基函数的数量
         nNeisNeibfs = length(neisNeibfs)
 
+        # 本盒子基函数
+        cbfs        =   cube.bfInterval
+        # 本盒子基函数起始点在 nneibfs 的位置
+        cbfsInCnnei =   cbfs .+ (searchsortedfirst(neisNeibfs, cbfs.start) - cbfs.start)
+        
         # 提取对应的阻抗矩阵
         # Znn 保存在预分配内存里
         Znnt    =   Znnts[threadid()]
