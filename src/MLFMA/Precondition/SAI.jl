@@ -85,6 +85,7 @@ function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         # Znn 保存在预分配内存里
         Znnt    =   Znnts[threadid()]
         length(Znnt) < nNeibfs*nNeisNeibfs && resize!(Znnt, nNeibfs*nNeisNeibfs)
+        fill!(Znnt, 0)
         Znn     =   reshape(view(Znnt, 1:nNeibfs*nNeisNeibfs), nNeibfs, nNeisNeibfs)
 
         for j in 1:length(neisNeibfs), i in 1:length(neibfs)
@@ -95,6 +96,7 @@ function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         # Znn*ZnnH 也保存在预分配内存里
         ZnnHZnnt = ZnnHZnnts[threadid()]
         length(ZnnHZnnt) < nNeibfs*nNeibfs && resize!(ZnnHZnnt, nNeibfs*nNeibfs)
+        fill!(ZnnHZnnt, 0)
         ZnnHZnn     =   reshape(view(ZnnHZnnt, 1:nNeibfs*nNeibfs), nNeibfs, nNeibfs)
 
         # Qi      =   inv(Znn * ZnnH)
@@ -171,6 +173,7 @@ function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         # Znn 保存在预分配内存里
         Znnt    =   Znnts[threadid()]
         length(Znnt) < nNeibfs*nNeisNeibfs && resize!(Znnt, nNeibfs*nNeisNeibfs)
+        fill!(Znnt, 0)
         Znn     =   reshape(view(Znnt, 1:nNeibfs*nNeisNeibfs), nNeisNeibfs, nNeibfs)
         # Znn    .=   ZnearCSC[neisNeibfs, neibfs]
         for j in 1:length(neibfs), i in 1:length(neisNeibfs)
@@ -181,6 +184,7 @@ function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         # Znn*ZnnH 也保存在预分配内存里
         ZnnZnnHt = ZnnZnnHts[threadid()]
         length(ZnnZnnHt) < nNeibfs*nNeibfs && resize!(ZnnZnnHt, nNeibfs*nNeibfs)
+        fill!(ZnnZnnHt, 0)
         ZnnZnnH     =   reshape(view(ZnnZnnHt, 1:nNeibfs*nNeibfs), nNeibfs, nNeibfs)
 
         # Qi      =   inv(ZnnH * Znn)

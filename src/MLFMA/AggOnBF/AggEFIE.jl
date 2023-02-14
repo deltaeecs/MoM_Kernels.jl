@@ -463,7 +463,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{Hexa
 end
 
 """
-计算某层聚合项, 输入为四面体信息和 SWG 基函数信息
+计算某层聚合项, 输入为六面体信息和 RBF 基函数信息
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{VT}, 
     ::Type{BFT}) where {VT<:HexahedraInfo, BFT<:RBF}
