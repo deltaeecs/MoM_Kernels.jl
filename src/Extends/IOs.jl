@@ -160,6 +160,28 @@ function saveOctree(octree; dir="")
 
 end
 
+"""
+    get_partitation(nCubes, sizePoles, np)
+
+    根据给定的盒子数、多极子数、进程数返回该层 pattern 的三个维度的划分数量。
+
+"""
+function get_partitation(nCubes, sizePoles, np)
+
+    # partitation = if nCubes > 3np
+    #     (1, 1, np)
+    # else
+    #     aggSize = (sizePoles, 2, nCubes)
+    #     # 分区
+    #     slicedim2mpi(aggSize, np)
+    # end
+
+    temp = slicedim2mpi((sizePoles, nCubes), np)
+    partitation = (temp[1], 1, temp[2])
+
+    return partitation
+
+end
 
 
 """
@@ -179,13 +201,7 @@ function saveLevel(level, np = ParallelParams.nprocs; dir="", kcubeIndices = not
     # 多极子数
     sizePoles   =   length(level.poles.r̂sθsϕs)
 
-    partitation = if length(cubes) > 3np
-        (1, 1, np)
-    else
-        aggSize = (sizePoles, 2, length(cubes))
-        # 分区
-        slicedim2mpi(aggSize, np)
-    end
+    partitation =   get_partitation(length(cubes), sizePoles, np)
 
     indices = saveCubes(cubes, partitation[3]; name = "Level_$(level.ID)_Cubes", dir=dir, kcubeIndices = kcubeIndices)
 
