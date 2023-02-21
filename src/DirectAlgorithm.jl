@@ -9,32 +9,47 @@ nbf::       基函数数量
 Zmat
 """
 function getImpedanceMatrix(geosInfo::Vector{ST}, nbf::Integer) where {ST<:SurfaceCellType}
-    if SimulationParams.ieT == :EFIE
-        # 计算 RWG下 的 EFIE 阻抗矩阵
-        Zmat =   impedancemat4EFIE4PEC(geosInfo, nbf, VSBFTypes.sbfType)
-    elseif SimulationParams.ieT == :MFIE
-        # 计算 RWG下 的 MFIE 阻抗矩阵
-        Zmat =   impedancemat4MFIE4PEC(geosInfo, nbf, VSBFTypes.sbfType)
-    elseif SimulationParams.ieT == :CFIE
-        # 计算 RWG下 的 CFIE 阻抗矩阵
-        Zmat =   impedancemat4CFIE4PEC(geosInfo, nbf, VSBFTypes.sbfType)
+    @clock "矩阵计算" begin
+        if SimulationParams.ieT == :EFIE
+            # 计算 RWG下 的 EFIE 阻抗矩阵
+            Zmat =   impedancemat4EFIE4PEC(geosInfo, nbf, VSBFTypes.sbfType)
+        elseif SimulationParams.ieT == :MFIE
+            # 计算 RWG下 的 MFIE 阻抗矩阵
+            Zmat =   impedancemat4MFIE4PEC(geosInfo, nbf, VSBFTypes.sbfType)
+        elseif SimulationParams.ieT == :CFIE
+            # 计算 RWG下 的 CFIE 阻抗矩阵
+            Zmat =   impedancemat4CFIE4PEC(geosInfo, nbf, VSBFTypes.sbfType)
+        end
     end
+
+    memory["全矩阵"] = Base.summarysize(Zmat)
+
     return Zmat
 end
 
 function getImpedanceMatrix(geosInfo::Vector{VT}, nbf::Integer) where {VT<:VolumeCellType}
     # 计算 SWG/PWC/RBF 下的 EFIE 阻抗矩阵
-    Zmat =   impedancemat4VIE(geosInfo, nbf, VSBFTypes.vbfType)
+    @clock "矩阵计算" begin
+        Zmat =   impedancemat4VIE(geosInfo, nbf, VSBFTypes.vbfType)
+    end
+
+    memory["全矩阵"] = Base.summarysize(Zmat)
+
     return Zmat
 end
 
 function getImpedanceMatrix(geosInfo::Vector{VT}, nbf::Integer) where {VT<:AbstractVector}
-    if eltype(geosInfo[1]) <: SurfaceCellType
-        # 计算 混合基函数下带有面网格的SWG/PWC/RBF 下的阻抗矩阵
-        Zmat =   impedancemat4VSIE(geosInfo, nbf)
-    else
-        Zmat =   impedancemat4VIE(geosInfo, nbf, VSBFTypes.vbfType)
+    @clock "矩阵计算" begin
+        if eltype(geosInfo[1]) <: SurfaceCellType
+            # 计算 混合基函数下带有面网格的SWG/PWC/RBF 下的阻抗矩阵
+            Zmat =   impedancemat4VSIE(geosInfo, nbf)
+        else
+            Zmat =   impedancemat4VIE(geosInfo, nbf, VSBFTypes.vbfType)
+        end
     end
+
+    memory["全矩阵"] = Base.summarysize(Zmat)
+
     return Zmat
 end
 

@@ -206,7 +206,9 @@ function calZnearCSC(level, geosInfo::Vector,
             initialZnearCSR(level, nbf)
         end
     end
-    calZnearCSC!(level, geosInfo, ZnearCSC)
+    @clock "计算近场矩阵" begin
+        calZnearCSC!(level, geosInfo, ZnearCSC)
+    end
     
     return ZnearCSC
 end

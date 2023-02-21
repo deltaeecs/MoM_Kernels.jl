@@ -54,7 +54,9 @@ function MLMFAIterator(ZnearCSC, octree::OctreeInfo{FT, LT},
     nbf         =   getNUnknown(bfsInfo)
     
     # 预先计算叶层聚合项，内存占用为该层采样点数 nPoles × Nbf， 因此仅在内存充足时使用
-    aggSBF, disaggSBF   =   getAggSBFOnLevel(leafLevel, vsCellsInfo, bfsInfo)
+    @clock "叶层聚合项计算" begin
+        aggSBF, disaggSBF   =   getAggSBFOnLevel(leafLevel, vsCellsInfo, bfsInfo)
+    end
 
     # 给各层的聚合项、解聚项预分配内存
     memoryAllocationOnLevels!(nLevels, levels)
@@ -62,7 +64,11 @@ function MLMFAIterator(ZnearCSC, octree::OctreeInfo{FT, LT},
     # 给矩阵向量乘积预分配内存
     ZI  =   zeros(Complex{FT}, nbf)
 
-    return MLMFAIterator{Complex{FT}, Vector}(octree, ZnearCSC, vsCellsInfo, bfsInfo, aggSBF, disaggSBF, ZI)
+    Zopt =  MLMFAIterator{Complex{FT}, Vector}(octree, ZnearCSC, vsCellsInfo, bfsInfo, aggSBF, disaggSBF, ZI)
+
+    record_memorys(Zopt)
+
+    return Zopt
 
 end
 

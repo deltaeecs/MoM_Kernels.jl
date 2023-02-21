@@ -8,7 +8,10 @@ function iluPrecondition(A, level; τ = 1e-3)
         @warn "近场矩阵采用了转置以加快计算速度，不再适用 ilu 算法，改回 SAI!"
         return sparseApproximateInversePl(A, level)
     else
-        return ilu(A; τ = τ)
+        @clock "计算ILU" begin
+            re = ilu(A; τ = τ)
+        end
+        return re
     end
 
 end

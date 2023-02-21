@@ -151,8 +151,9 @@ function sparseApproximateInversePl(ZnearChunks::ZnearChunksStruct{CT}, level; n
     # 恢复BLAS默认线程以防影响其他多线程函数
     BLAS.set_num_threads(nthds)
     # 保存预条件类型
-    open(SimulationParams.resultDir*"/InputArgs.txt", "a+")  do f
-        write(f, "\npreT:\tSAI")
+    open(joinpath(SimulationParams.resultDir, "InputArgs.txt"), "a+")  do f
+        @printf f "%20s\n" "预条件"
+        @printf f "%-20s %13s\n" "类型" "SAI" 
     end
     return SAIChunkPrec{CT}(preM)
 end

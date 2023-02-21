@@ -84,23 +84,23 @@ octree::    得到的八叉树
 leafCubeEdgel:: 控制叶层盒子大小
 isDistribute:: 控制是否为分布式计算
 """
-function getOctreeAndReOrderBFs!(geosInfo, bfsInfo; leafCubeEdgel = getLeafCubeL(geosInfo), isDistribute = false)
+function getOctreeAndReOrderBFs!(geosInfo, bfsInfo; leafCubeEdgel = getLeafCubeL(geosInfo))
+    @clock "八叉树构建" begin
+        # 所有基函数的中心坐标，用于分组计算
+        bfcenters   =  getBfsCenter(bfsInfo)
+        
+        # 构建八叉树，重新排列基函数
+        octree, reOrderID   =   OctreeInfo{eltype(bfcenters), LevelInfo}(bfcenters, leafCubeEdgel)
 
-    # 所有基函数的中心坐标，用于分组计算
-    bfcenters   =  getBfsCenter(bfsInfo)
-    
-    # 构建八叉树，重新排列基函数
-    LT = isDistribute ? LevelInfoD : LevelInfo
-    octree, reOrderID   =   OctreeInfo{eltype(bfcenters), LT}(bfcenters, leafCubeEdgel)
-
-    # 叶层ID
-    nLevels     =   max(keys(octree.levels)...)
-    
-    @info "基函数按八叉树重新排序中..."
-    # 根据按八叉树重新排序的基函数id重排基函数信息
-    reOrderBasisFunctionAndGeoInfo!(reOrderID, geosInfo, bfsInfo)
-    # 在叶层找出每个盒子包含的体元id
-    setGeoIDsInLeafCubes!(octree.levels[nLevels], bfsInfo)
+        # 叶层ID
+        nLevels     =   max(keys(octree.levels)...)
+        
+        @info "基函数按八叉树重新排序中..."
+        # 根据按八叉树重新排序的基函数id重排基函数信息
+        reOrderBasisFunctionAndGeoInfo!(reOrderID, geosInfo, bfsInfo)
+        # 在叶层找出每个盒子包含的体元id
+        setGeoIDsInLeafCubes!(octree.levels[nLevels], bfsInfo)
+    end
 
     return nLevels, octree
 

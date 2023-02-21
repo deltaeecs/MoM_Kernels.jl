@@ -38,82 +38,85 @@ cubes
 该函数提供左预条件
 """
 function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector) where {FT<:Real, CT<:Complex{FT}}
-    # 将本函数内的BLAS设为单线程
-    nthds = nthreads()
-    BLAS.set_num_threads(1)
-    # 首先预分配结果, 采用与 ZnearCSC 相同的稀疏模式
-    preM    =   deepcopy(ZnearCSC)
+    @clock "计算SAI" begin
+        # 将本函数内的BLAS设为单线程
+        nthds = nthreads()
+        BLAS.set_num_threads(1)
+        # 首先预分配结果, 采用与 ZnearCSC 相同的稀疏模式
+        preM    =   deepcopy(ZnearCSC)
 
-    # 所有的盒子
-    nCubes  =   length(cubes)
+        # 所有的盒子
+        nCubes  =   length(cubes)
 
-    # 进度条
-    pmeter  =   Progress(nCubes, "Pₗ")
+        # 进度条
+        pmeter  =   Progress(nCubes, "Pₗ")
 
-    # Znn ZnnH 按线程预分配内存
-    Znnts       =   [zeros(CT, 1) for _ in 1:nthds]
-    ZnnHZnnts   =   [zeros(CT, 1) for _ in 1:nthds]
+        # Znn ZnnH 按线程预分配内存
+        Znnts       =   [zeros(CT, 1) for _ in 1:nthds]
+        ZnnHZnnts   =   [zeros(CT, 1) for _ in 1:nthds]
 
-    # 对所有盒子循环
-    @threads for iCube in 1:nCubes
+        # 对所有盒子循环
+        @threads for iCube in 1:nCubes
 
-        # 本盒子与所有邻盒子id
-        cube    =   cubes[iCube]
-        ineiIDs =   cube.neighbors
+            # 本盒子与所有邻盒子id
+            cube    =   cubes[iCube]
+            ineiIDs =   cube.neighbors
 
-        # 本盒子与所有邻盒子基函数的 id
-        neibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, ineiIDs))
-        # 本盒子所有邻盒子基函数的数量
-        nNeibfs = length(neibfs)
+            # 本盒子与所有邻盒子基函数的 id
+            neibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, ineiIDs))
+            # 本盒子所有邻盒子基函数的数量
+            nNeibfs = length(neibfs)
 
-        # 本盒子与所有邻及其邻盒子 id
-        iNeisNeiIDs  = reduce(vcat, map(i -> cubes[i].neighbors, ineiIDs))
-        unique!(sort!(iNeisNeiIDs))
+            # 本盒子与所有邻及其邻盒子 id
+            iNeisNeiIDs  = reduce(vcat, map(i -> cubes[i].neighbors, ineiIDs))
+            unique!(sort!(iNeisNeiIDs))
 
-        # 本盒子与所有邻盒子及其邻盒子基函数的 id
-        neisNeibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, iNeisNeiIDs))
-        # 本盒子与所有邻盒子及其邻盒子基函数的数量
-        nNeisNeibfs = length(neisNeibfs)
+            # 本盒子与所有邻盒子及其邻盒子基函数的 id
+            neisNeibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, iNeisNeiIDs))
+            # 本盒子与所有邻盒子及其邻盒子基函数的数量
+            nNeisNeibfs = length(neisNeibfs)
 
-        # 本盒子基函数
-        cbfs        =   cube.bfInterval
-        # 本盒子基函数起始点在 nneibfs 的位置
-        cbfsInCnnei =   cbfs .+ (searchsortedfirst(neisNeibfs, cbfs.start) - cbfs.start)
-        
-        # 提取对应的阻抗矩阵
-        # Znn     =   zeros(CT, nNeibfs, nNeisNeibfs)
-        # Znn 保存在预分配内存里
-        Znnt    =   Znnts[threadid()]
-        length(Znnt) < nNeibfs*nNeisNeibfs && resize!(Znnt, nNeibfs*nNeisNeibfs)
-        fill!(Znnt, 0)
-        Znn     =   reshape(view(Znnt, 1:nNeibfs*nNeisNeibfs), nNeibfs, nNeisNeibfs)
+            # 本盒子基函数
+            cbfs        =   cube.bfInterval
+            # 本盒子基函数起始点在 nneibfs 的位置
+            cbfsInCnnei =   cbfs .+ (searchsortedfirst(neisNeibfs, cbfs.start) - cbfs.start)
+            
+            # 提取对应的阻抗矩阵
+            # Znn     =   zeros(CT, nNeibfs, nNeisNeibfs)
+            # Znn 保存在预分配内存里
+            Znnt    =   Znnts[threadid()]
+            length(Znnt) < nNeibfs*nNeisNeibfs && resize!(Znnt, nNeibfs*nNeisNeibfs)
+            fill!(Znnt, 0)
+            Znn     =   reshape(view(Znnt, 1:nNeibfs*nNeisNeibfs), nNeibfs, nNeisNeibfs)
 
-        for j in 1:length(neisNeibfs), i in 1:length(neibfs)
-            Znn[i, j]  =   ZnearCSC[neibfs[i], neisNeibfs[j]]
-        end
-        ZnnH    =   Znn'
+            for j in 1:length(neisNeibfs), i in 1:length(neibfs)
+                Znn[i, j]  =   ZnearCSC[neibfs[i], neisNeibfs[j]]
+            end
+            ZnnH    =   Znn'
 
-        # Znn*ZnnH 也保存在预分配内存里
-        ZnnHZnnt = ZnnHZnnts[threadid()]
-        length(ZnnHZnnt) < nNeibfs*nNeibfs && resize!(ZnnHZnnt, nNeibfs*nNeibfs)
-        fill!(ZnnHZnnt, 0)
-        ZnnHZnn     =   reshape(view(ZnnHZnnt, 1:nNeibfs*nNeibfs), nNeibfs, nNeibfs)
+            # Znn*ZnnH 也保存在预分配内存里
+            ZnnHZnnt = ZnnHZnnts[threadid()]
+            length(ZnnHZnnt) < nNeibfs*nNeibfs && resize!(ZnnHZnnt, nNeibfs*nNeibfs)
+            fill!(ZnnHZnnt, 0)
+            ZnnHZnn     =   reshape(view(ZnnHZnnt, 1:nNeibfs*nNeibfs), nNeibfs, nNeibfs)
 
-        # Qi      =   inv(Znn * ZnnH)
-        Qi      =   inv(mul!(ZnnHZnn, Znn, ZnnH))
+            # Qi      =   inv(Znn * ZnnH)
+            Qi      =   inv(mul!(ZnnHZnn, Znn, ZnnH))
 
-        # 计算并写入结果
-        preM[cbfs, neibfs] .=    view(ZnnH, cbfsInCnnei, :) * Qi
+            # 计算并写入结果
+            preM[cbfs, neibfs] .=    view(ZnnH, cbfsInCnnei, :) * Qi
 
-        # 更新进度条
-        next!(pmeter)
+            # 更新进度条
+            next!(pmeter)
 
-    end # iCube
-    # 恢复BLAS默认线程以防影响其他多线程函数
-    BLAS.set_num_threads(nthds)
+        end # iCube
+        # 恢复BLAS默认线程以防影响其他多线程函数
+        BLAS.set_num_threads(nthds)
+    end
     # 保存预条件类型
     open(joinpath(SimulationParams.resultDir, "InputArgs.txt"), "a+")  do f
-        write(f, "\npreT:\tSAI")
+        @printf f "%20s\n" "预条件"
+        @printf f "%-20s %13s\n" "类型" "SAI" 
     end
     return SAIPrec{CT}(preM)
 end
@@ -127,81 +130,84 @@ cubes
 该函数提供右预条件
 """
 function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector) where { FT<:Real, CT<:Complex{FT}}
-    # 将本函数内的BLAS设为单线程
-    nthds = nthreads()
-    BLAS.set_num_threads(1)
-    # 首先预分配结果, 采用与 ZnearCSC 相同的稀疏模式
-    preM    =   deepcopy(ZnearCSC)
+    @clock "计算SAI" begin
+        # 将本函数内的BLAS设为单线程
+        nthds = nthreads()
+        BLAS.set_num_threads(1)
+        # 首先预分配结果, 采用与 ZnearCSC 相同的稀疏模式
+        preM    =   deepcopy(ZnearCSC)
 
-    # 所有的盒子
-    nCubes  =   length(cubes)
+        # 所有的盒子
+        nCubes  =   length(cubes)
 
-    # 进度条
-    pmeter  =   Progress(nCubes, "Calculating SAI right preconditioner...")
+        # 进度条
+        pmeter  =   Progress(nCubes, "Calculating SAI right preconditioner...")
 
-    # Znn ZnnH 按线程预分配内存
-    Znnts       =   [zeros(CT, 1) for _ in 1:nthds]
-    ZnnZnnHts   =   [zeros(CT, 1) for _ in 1:nthds]
+        # Znn ZnnH 按线程预分配内存
+        Znnts       =   [zeros(CT, 1) for _ in 1:nthds]
+        ZnnZnnHts   =   [zeros(CT, 1) for _ in 1:nthds]
 
-    # 对所有盒子循环
-    @threads for iCube in 1:nCubes
+        # 对所有盒子循环
+        @threads for iCube in 1:nCubes
 
-        # 本盒子与所有邻盒子id
-        cube    =   cubes[iCube]
-        ineiIDs =   cube.neighbors
+            # 本盒子与所有邻盒子id
+            cube    =   cubes[iCube]
+            ineiIDs =   cube.neighbors
 
-        # 本盒子与所有邻盒子基函数的 id
-        neibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, ineiIDs))
-        # 本盒子所有邻盒子基函数的数量
-        nNeibfs = length(neibfs)
+            # 本盒子与所有邻盒子基函数的 id
+            neibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, ineiIDs))
+            # 本盒子所有邻盒子基函数的数量
+            nNeibfs = length(neibfs)
 
-        # 本盒子与所有邻及其邻盒子 id
-        iNeisNeiIDs  = reduce(vcat, map(i -> cubes[i].neighbors, ineiIDs))
-        unique!(sort!(iNeisNeiIDs))
+            # 本盒子与所有邻及其邻盒子 id
+            iNeisNeiIDs  = reduce(vcat, map(i -> cubes[i].neighbors, ineiIDs))
+            unique!(sort!(iNeisNeiIDs))
 
-        # 本盒子与所有邻盒子及其邻盒子基函数的 id
-        neisNeibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, iNeisNeiIDs))
-        # 本盒子与所有邻盒子及其邻盒子基函数的数量
-        nNeisNeibfs = length(neisNeibfs)
+            # 本盒子与所有邻盒子及其邻盒子基函数的 id
+            neisNeibfs  = reduce(vcat, map(i -> cubes[i].bfInterval, iNeisNeiIDs))
+            # 本盒子与所有邻盒子及其邻盒子基函数的数量
+            nNeisNeibfs = length(neisNeibfs)
 
-        # 本盒子基函数
-        cbfs        =   cube.bfInterval
-        # 本盒子基函数起始点在 nneibfs 的位置
-        cbfsInCnnei =   cbfs .+ (searchsortedfirst(neisNeibfs, cbfs.start) - cbfs.start)
-        
-        # 提取对应的阻抗矩阵
-        # Znn 保存在预分配内存里
-        Znnt    =   Znnts[threadid()]
-        length(Znnt) < nNeibfs*nNeisNeibfs && resize!(Znnt, nNeibfs*nNeisNeibfs)
-        fill!(Znnt, 0)
-        Znn     =   reshape(view(Znnt, 1:nNeibfs*nNeisNeibfs), nNeisNeibfs, nNeibfs)
-        # Znn    .=   ZnearCSC[neisNeibfs, neibfs]
-        for j in 1:length(neibfs), i in 1:length(neisNeibfs)
-            Znn[i, j]  =   ZnearCSC[neisNeibfs[i], neibfs[j]]
-        end
-        ZnnH    =   adjoint(Znn)
+            # 本盒子基函数
+            cbfs        =   cube.bfInterval
+            # 本盒子基函数起始点在 nneibfs 的位置
+            cbfsInCnnei =   cbfs .+ (searchsortedfirst(neisNeibfs, cbfs.start) - cbfs.start)
+            
+            # 提取对应的阻抗矩阵
+            # Znn 保存在预分配内存里
+            Znnt    =   Znnts[threadid()]
+            length(Znnt) < nNeibfs*nNeisNeibfs && resize!(Znnt, nNeibfs*nNeisNeibfs)
+            fill!(Znnt, 0)
+            Znn     =   reshape(view(Znnt, 1:nNeibfs*nNeisNeibfs), nNeisNeibfs, nNeibfs)
+            # Znn    .=   ZnearCSC[neisNeibfs, neibfs]
+            for j in 1:length(neibfs), i in 1:length(neisNeibfs)
+                Znn[i, j]  =   ZnearCSC[neisNeibfs[i], neibfs[j]]
+            end
+            ZnnH    =   adjoint(Znn)
 
-        # Znn*ZnnH 也保存在预分配内存里
-        ZnnZnnHt = ZnnZnnHts[threadid()]
-        length(ZnnZnnHt) < nNeibfs*nNeibfs && resize!(ZnnZnnHt, nNeibfs*nNeibfs)
-        fill!(ZnnZnnHt, 0)
-        ZnnZnnH     =   reshape(view(ZnnZnnHt, 1:nNeibfs*nNeibfs), nNeibfs, nNeibfs)
+            # Znn*ZnnH 也保存在预分配内存里
+            ZnnZnnHt = ZnnZnnHts[threadid()]
+            length(ZnnZnnHt) < nNeibfs*nNeibfs && resize!(ZnnZnnHt, nNeibfs*nNeibfs)
+            fill!(ZnnZnnHt, 0)
+            ZnnZnnH     =   reshape(view(ZnnZnnHt, 1:nNeibfs*nNeibfs), nNeibfs, nNeibfs)
 
-        # Qi      =   inv(ZnnH * Znn)
-        Qi      =   inv(mul!(ZnnZnnH, ZnnH, Znn))
+            # Qi      =   inv(ZnnH * Znn)
+            Qi      =   inv(mul!(ZnnZnnH, ZnnH, Znn))
 
-        # 计算并写入结果
-        preM[neibfs, cbfs] .=    Qi * view(ZnnH, :, cbfsInCnnei)
+            # 计算并写入结果
+            preM[neibfs, cbfs] .=    Qi * view(ZnnH, :, cbfsInCnnei)
 
-        # 更新进度条
-        next!(pmeter)
+            # 更新进度条
+            next!(pmeter)
 
-    end # iCube
-    # 恢复BLAS默认线程以防影响其他多线程函数
-    BLAS.set_num_threads(nthds)
+        end # iCube
+        # 恢复BLAS默认线程以防影响其他多线程函数
+        BLAS.set_num_threads(nthds)
+    end
     # 保存预条件类型
-    open(SimulationParams.resultDir*"/InputArgs.txt", "a+")  do f
-        write(f, "\npreT:\tSAI")
+    open(joinpath(SimulationParams.resultDir, "InputArgs.txt"), "a+")  do f
+        @printf f "%20s\n" "预条件"
+        @printf f "%-20s %13s\n" "类型" "SAI" 
     end
 
     return SAIPrec{CT}(preM)
