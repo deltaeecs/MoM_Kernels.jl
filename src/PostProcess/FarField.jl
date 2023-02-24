@@ -46,6 +46,18 @@ function farField(θs_obs, ϕs_obs,
     # 总的farE (电场使用 20log10)
     farE         =   farEθsϕs[1, :, :] + farEθsϕs[2, :, :]
     farEdB       =   20log10.(farE)
+    # 保存数据
+    open(SimulationParams.resultDir*"farEm2$str.txt", "w") do io
+        θs_obs_deg  =   θs_obs/pi*180
+        ϕs_obs_deg  =   ϕs_obs/pi*180
+        for θii in 1:length(θs_obs_deg)
+            write(io, "$(θs_obs_deg[θii])\t")
+            for ϕjj in 1:length(ϕs_obs_deg)
+                write(io, "$(farE[θii, ϕjj])\t")
+            end
+            write(io, "\n")
+        end
+    end
     # 绘图并保存数据
     farEPlot(θs_obs, ϕs_obs, farE, farEdB; str = str)
     # 返回
@@ -102,6 +114,18 @@ function farField(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vector{VT}, so
         farE[:, iϕ] .=  norm.(eachcol(farEθsϕs[:, :, iϕ]))
     end
     farEdB       =   20log10.(farE)
+    # 保存数据
+    open(SimulationParams.resultDir*"farEm2$str.txt", "w") do io
+        θs_obs_deg  =   θs_obs/pi*180
+        ϕs_obs_deg  =   ϕs_obs/pi*180
+        for θii in 1:length(θs_obs_deg)
+            write(io, "$(θs_obs_deg[θii])\t")
+            for ϕjj in 1:length(ϕs_obs_deg)
+                write(io, "$(farE[θii, ϕjj])\t")
+            end
+            write(io, "\n")
+        end
+    end
     # 绘图并保存数据
     farEPlot(θs_obs, ϕs_obs, farE, farEdB; str = str)
     # 返回
@@ -164,6 +188,19 @@ function farField(θs_obs, ϕs_obs,
         farE[:, iϕ] .=  norm.(eachcol(farEθsϕs[:, :, iϕ]))
     end
     farEdB       =   20log10.(farE)
+
+    # 保存数据
+    open(SimulationParams.resultDir*"farEm2$str.txt", "w") do io
+        θs_obs_deg  =   θs_obs/pi*180
+        ϕs_obs_deg  =   ϕs_obs/pi*180
+        for θii in 1:length(θs_obs_deg)
+            write(io, "$(θs_obs_deg[θii])\t")
+            for ϕjj in 1:length(ϕs_obs_deg)
+                write(io, "$(farE[θii, ϕjj])\t")
+            end
+            write(io, "\n")
+        end
+    end
     # 绘图并保存数据
     farEPlot(θs_obs, ϕs_obs, farE, farEdB; str = str)
     # 返回
