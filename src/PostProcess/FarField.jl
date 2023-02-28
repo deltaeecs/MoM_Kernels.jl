@@ -46,6 +46,8 @@ function farField(θs_obs, ϕs_obs,
     # 总的farE (电场使用 20log10)
     farE         =   farEθsϕs[1, :, :] + farEθsϕs[2, :, :]
     farEdB       =   20log10.(farE)
+    #保存数据
+    save_farE(θs_obs, ϕs_obs, farE; str=str)
     # 绘图并保存数据
     farEPlot(θs_obs, ϕs_obs, farE, farEdB; str = str)
     # 返回
@@ -102,7 +104,9 @@ function farField(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vector{VT}, so
         farE[:, iϕ] .=  norm.(eachcol(farEθsϕs[:, :, iϕ]))
     end
     farEdB       =   20log10.(farE)
-    # 绘图并保存数据
+    #保存数据
+    save_farE(θs_obs, ϕs_obs, farE; str=str)
+    # 绘图
     farEPlot(θs_obs, ϕs_obs, farE, farEdB; str = str)
     # 返回
     return farEθsϕs, farEθsϕsdB, farE, farEdB
@@ -164,6 +168,8 @@ function farField(θs_obs, ϕs_obs,
         farE[:, iϕ] .=  norm.(eachcol(farEθsϕs[:, :, iϕ]))
     end
     farEdB       =   20log10.(farE)
+    #保存数据
+    save_farE(θs_obs, ϕs_obs, farE; str=str)
     # 绘图并保存数据
     farEPlot(θs_obs, ϕs_obs, farE, farEdB; str = str)
     # 返回
@@ -214,9 +220,19 @@ function farField(θs_obs, ϕs_obs, source; str::String = "")
         farE[:, iϕ] .=  norm.(eachcol(farEθsϕs[:, :, iϕ]))
     end
     farEdB       =   20log10.(farE)
+    #保存数据
+    save_farE(θs_obs, ϕs_obs, farE; str=str)
 
+    # 绘图
+    farEPlot(θs_obs, ϕs_obs, farE, farEdB; str = str)
+    # 返回
+    return farEθsϕs, farEθsϕsdB, farE, farEdB
+
+end # end function
+
+function save_farE(θs_obs, ϕs_obs, farE; str="")
     # 保存数据
-    open(SimulationParams.resultDir*"farEm2$str.txt", "w") do io
+    open(SimulationParams.resultDir*"farE(V)$str.txt", "w") do io
         θs_obs_deg  =   θs_obs/pi*180
         ϕs_obs_deg  =   ϕs_obs/pi*180
         for θii in 1:length(θs_obs_deg)
@@ -227,13 +243,7 @@ function farField(θs_obs, ϕs_obs, source; str::String = "")
             write(io, "\n")
         end
     end
-    # 绘图
-    SimulationParams.SHOWIMAGE && farEPlot(θs_obs, ϕs_obs, farE, farEdB; str = str)
-    # 返回
-    return farEθsϕs, farEθsϕsdB, farE, farEdB
-
-end # end function
-
+end
 
 """
 farE 绘图
@@ -245,7 +255,7 @@ function farEPlot(θs_obs, ϕs_obs, farE::Matrix{FT}, farEdB::Matrix{FT}; str::S
     # 标签
     labels  =   reshape(["ϕ = $(ϕ_obs_deg)°" for ϕ_obs_deg in ϕs_obs_deg], (1, length(ϕs_obs_deg)))
     # 绘图
-    figfarEm²  = lineplot(θs_obs_deg, farE; name = labels, xlim = extrema(θs_obs_deg), ylim = extrema(farE), xlabel="θ", ylabel="m²", title = "farE(m²)(θϕ)$str")
+    figfarEm²  = lineplot(θs_obs_deg, farE; name = labels, xlim = extrema(θs_obs_deg), ylim = extrema(farE), xlabel="θ", ylabel="V", title = "farE(V)(θϕ)$str")
     figfarEdB  = lineplot(θs_obs_deg, farEdB; name = labels, xlim = extrema(θs_obs_deg), ylim = extrema(farEdB), xlabel="θ", ylabel="dB", title = "farE(dB)(θϕ)$str")
 
     SimulationParams.SHOWIMAGE && display(figfarEm²)
