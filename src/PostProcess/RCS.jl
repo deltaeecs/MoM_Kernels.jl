@@ -8,7 +8,7 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙlₙρₙ/2)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
 function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, 
-    trianglesInfo::Vector{ST}, ::Type{BFT} = VSBFTypes.sbfType) where {CT<:Complex, ST<:TriangleInfo, BFT<:RWG}
+    trianglesInfo::Vector{ST}, ::Type{BFT} = VSBFTypes.sbfType; str = "") where {CT<:Complex, ST<:TriangleInfo, BFT<:RWG}
     FT = Precision.FT
     # 高斯求积点电流权重乘积
     Jtris       =   electricJCal(ICoeff, trianglesInfo)
@@ -63,7 +63,7 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙsₙρₙ/3)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
 function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vector{VT}, 
-                            bfT::Type{BFT} = VSBFTypes.vbfType) where {VT<:VolumeCellType, CT<:Complex, BFT<:BasisFunctionType}
+                            bfT::Type{BFT} = VSBFTypes.vbfType; str = "") where {VT<:VolumeCellType, CT<:Complex, BFT<:BasisFunctionType}
     FT = Precision.FT
     # 高斯求积点电流权重乘积
     Jgeos       =   geoElectricJCal(ICoeff, geosInfo, bfT)
@@ -116,7 +116,7 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙsₙρₙ/3)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
 function radarCrossSection(θs_obs, ϕs_obs,
-    ICoeff::Vector{CT}, geosInfo::Vector{VT}) where {CT<:Complex, VT<:AbstractVector}
+    ICoeff::Vector{CT}, geosInfo::Vector{VT}; str = "") where {CT<:Complex, VT<:AbstractVector}
     FT = Precision.FT
     # 面网格、体网格
     tris    =   geosInfo[1]
