@@ -80,6 +80,7 @@ TBW
 """
 function LinearAlgebra.mul!(y, Zopt::MLMFAIterator, x)
     # near
+    fill!(y, 0)
     mul!(y, Zopt.Znear, x)
     # far
     calZfarI!(Zopt, x)
@@ -90,4 +91,69 @@ function LinearAlgebra.mul!(y, Zopt::MLMFAIterator, x)
 
 end
 
+"""
+    LinearAlgebra.mul!(y, Zopt::MLMFAIterator, x)
+
+    重载以实现矩阵向量乘积计算
+TBW
+"""
+function LinearAlgebra.mul!(y::AbstractVector, Zopt::MLMFAIterator, x::AbstractVector, α::Number, β::Number)
+    # near
+    mul!(y, Zopt.Znear, x, α, β)
+    # far
+    calZfarI!(Zopt, x)
+    # cumsum results
+    axpy!(α, Zopt.ZI, y)
+
+    return y
+
+end
+
 Base.:*(opt::MLMFAIterator, x) = mul!(deepcopy(opt.ZI), opt, x)
+
+# 实现矩阵的伴随算子矩阵向量相乘 
+Base.adjoint(opt::MLMFAIterator) = Adjoint(opt)
+Base.size(adjopt::Adjoint{T, MLMFAIterator{T, V}}) where {T, V} = size(adjoint(adjopt.parent.Znear))
+Base.size(adjopt::Adjoint{T, MLMFAIterator{T, V}}, ind...) where {T, V}  = size(adjoint(adjopt.parent.Znear), ind...)
+Base.:*(adjopt::Adjoint{T, MLMFAIterator{T, V}}, x::AbstractVector{S}) where {T, V, S} = mul!(deepcopy(adjopt.parent.ZI), adjopt, x)
+
+include("AdjointIterateOnOctree.jl")
+
+"""
+    LinearAlgebra.mul!(y, Zopt::MLMFAIterator, x)
+
+    重载以实现矩阵向量乘积计算
+TBW
+"""
+function LinearAlgebra.mul!(y, adjZopt::Adjoint{T, MLMFAIterator{T, V}}, x) where {T, V}
+    Zopt = adjZopt.parent
+    # near
+    fill!(y, 0)
+    mul!(y, adjoint(Zopt.Znear), x)
+    # far
+    caladjZfarI!(adjZopt, x)
+    # cumsum results
+    axpy!(1, Zopt.ZI, y)
+
+    return y
+
+end
+
+"""
+    LinearAlgebra.mul!(y, Zopt::MLMFAIterator, x)
+
+    重载以实现矩阵向量乘积计算
+TBW
+"""
+function LinearAlgebra.mul!(y::AbstractVector, adjZopt::Adjoint{T, MLMFAIterator{T, V}}, x::AbstractVector, α::Number, β::Number) where {T,V}
+    Zopt = adjZopt.parent
+    # near adjoint
+    mul!(y, adjoint(Zopt.Znear), x, α, β)
+    # far
+    caladjZfarI!(adjZopt, x)
+    # cumsum results
+    axpy!(α, Zopt.ZI, y)
+
+    return y
+
+end
