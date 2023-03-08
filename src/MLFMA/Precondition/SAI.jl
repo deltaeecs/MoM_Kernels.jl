@@ -54,6 +54,7 @@ function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         # Znn ZnnH 按线程预分配内存
         Znnts       =   [zeros(CT, 1) for _ in 1:nthds]
         ZnnHZnnts   =   [zeros(CT, 1) for _ in 1:nthds]
+        PHts        =   [zeros(CT, 1) for _ in 1:nthds]
 
         # 对所有盒子循环
         @threads for iCube in 1:nCubes
@@ -100,11 +101,21 @@ function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
             fill!(ZnnHZnnt, 0)
             ZnnHZnn     =   reshape(view(ZnnHZnnt, 1:nNeibfs*nNeibfs), nNeibfs, nNeibfs)
 
-            # Qi      =   inv(Znn * ZnnH)
-            Qi      =   inv(mul!(ZnnHZnn, Znn, ZnnH))
+            PHt = PHts[threadid()]
+            length(PHt) < length(cbfs)*nNeibfs && resize!(PHt, length(cbfs)*nNeibfs)
+            fill!(PHt, 0)
+            PH  =   reshape(view(PHt, 1:length(cbfs)*nNeibfs), nNeibfs, length(cbfs))
 
-            # 计算并写入结果
-            preM[cbfs, neibfs] .=    view(ZnnH, cbfsInCnnei, :) * Qi
+            # Qi      =   inv(Znn * ZnnH)
+            # 先计算出 ZnnHZnn， 然后对其进行 QR分解
+            mul!(ZnnHZnn, Znn, ZnnH)
+            ZLU      =   lu!(ZnnHZnn)
+
+            # 将结果先写入 PHt
+            ldiv!(PH, ZLU, view(Znn, :, cbfsInCnnei))
+
+            # 写入结果
+            preM[cbfs, neibfs] .=   PH'
 
             # 更新进度条
             next!(pmeter)
@@ -146,6 +157,7 @@ function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
         # Znn ZnnH 按线程预分配内存
         Znnts       =   [zeros(CT, 1) for _ in 1:nthds]
         ZnnZnnHts   =   [zeros(CT, 1) for _ in 1:nthds]
+        Pts         =   [zeros(CT, 1) for _ in 1:nthds]
 
         # 对所有盒子循环
         @threads for iCube in 1:nCubes
@@ -185,17 +197,26 @@ function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
             end
             ZnnH    =   adjoint(Znn)
 
+            Pt = Pts[threadid()]
+            length(Pt) < length(cbfs)*nNeibfs && resize!(Pt, length(cbfs)*nNeibfs)
+            fill!(Pt, 0)
+            P  =   reshape(view(Pt, 1:length(cbfs)*nNeibfs), nNeibfs, length(cbfs))
+
             # Znn*ZnnH 也保存在预分配内存里
             ZnnZnnHt = ZnnZnnHts[threadid()]
             length(ZnnZnnHt) < nNeibfs*nNeibfs && resize!(ZnnZnnHt, nNeibfs*nNeibfs)
             fill!(ZnnZnnHt, 0)
             ZnnZnnH     =   reshape(view(ZnnZnnHt, 1:nNeibfs*nNeibfs), nNeibfs, nNeibfs)
 
-            # Qi      =   inv(ZnnH * Znn)
-            Qi      =   inv(mul!(ZnnZnnH, ZnnH, Znn))
+            # 先计算出 ZnnHZnn， 然后对其进行 QR分解
+            mul!(ZnnZnnH, ZnnH, Znn)
+            ZLU      =   lu!(ZnnZnnH)
 
-            # 计算并写入结果
-            preM[neibfs, cbfs] .=    Qi * view(ZnnH, :, cbfsInCnnei)
+            # 将结果先写入 P
+            ldiv!(P, ZLU, view(ZnnH, :, cbfsInCnnei))
+
+            # 写入结果
+            preM[neibfs, cbfs] .=   P
 
             # 更新进度条
             next!(pmeter)
