@@ -15,7 +15,7 @@ mutable struct MLMFAIterator{T<:Number, VT<:AbstractVector}
 end
 
 # 各种可作为线性算子的集合
-LinearMapType{T}   =   Union{AbstractMatrix{T}, MLMFAIterator{T, VT}} where {T<:Number, VT}
+LinearMapType{T}   =   Union{AbstractMatrix{T}, MLMFAIterator{T, VT}, LinearMap{T}} where {T<:Number, VT}
 
 Base.eltype(::MLMFAIterator{T, VT}) where {T, VT} = T
 Base.size(opt::MLMFAIterator) = size(opt.Znear)

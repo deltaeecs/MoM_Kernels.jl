@@ -9,7 +9,7 @@ using StaticArrays, OffsetArrays, SparseArrays
 using .Threads, ThreadsX, FLoops, FoldsThreads
 using LinearAlgebra, Statistics
 using FastGaussQuadrature, SpecialFunctions, GSL, LegendrePolynomials
-using IncompleteLU, IterativeSolvers
+using IncompleteLU, IterativeSolvers, LinearMaps
 using UnicodePlots, Printf
 
 export  inputParameters,

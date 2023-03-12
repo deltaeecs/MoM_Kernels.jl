@@ -26,7 +26,7 @@ end
 Ax=b
 复合求解函数
 输入值：
-A::Matrix{T}, b::Vector{T}
+A::LinearMapType{T}, b::Vector{T}
 solverT::Symbol  求解器类型
 """
 function solve(A::LinearMapType{T}, b::AbstractVector{T};
@@ -70,7 +70,7 @@ end
 Ax=b
 复合求解函数
 输入值：
-A::Matrix{T}, b::Vector{T}
+A::LinearMapType{T}, b::Vector{T}
 solverT::Symbol  求解器类型
 """
 function solve!(A::LinearMapType{T}, x::AbstractVector{T}, b::AbstractVector{T}; 
