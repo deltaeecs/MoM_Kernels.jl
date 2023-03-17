@@ -26,7 +26,8 @@ export  inputParameters,
         getMeshDataSaveGeosInterval, set_geosInterval!,
         saveGeosInfoChunks, saveVec2Chunks, getNeighborCubeIDs,
         saveOctree, saveCubes, saveLevel,
-        PartitionedVector
+        PartitionedVector,
+        gq_xsws_on_sphere
 
 # 计算信息保存
 include("Recorder.jl")
