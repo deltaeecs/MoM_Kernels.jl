@@ -20,8 +20,8 @@ const MLFMAParams   =   MLFMAParamsType{typeof(Params.frequency)}(LEAFCUBESIZE =
 """
 设置叶层盒子边长
 """
-function set_leafCubeSize!(λ_0::FT) where {FT<:AbstractFloat}
-    MLFMAParams.LEAFCUBESIZE = 0.23*λ_0
+function set_leafCubeSize!(cubel::FT = 0.25Params.λ_0) where {FT<:AbstractFloat}
+    MLFMAParams.LEAFCUBESIZE = cubel
 end
 
 """
