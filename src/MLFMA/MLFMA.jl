@@ -84,13 +84,13 @@ octree::    得到的八叉树
 leafCubeEdgel:: 控制叶层盒子大小
 isDistribute:: 控制是否为分布式计算
 """
-function getOctreeAndReOrderBFs!(geosInfo, bfsInfo; leafCubeEdgel = getLeafCubeL(geosInfo))
+function getOctreeAndReOrderBFs!(geosInfo, bfsInfo; leafCubeEdgel = getLeafCubeL(geosInfo), nInterp = 6)
     @clock "八叉树构建" begin
         # 所有基函数的中心坐标，用于分组计算
         bfcenters   =  getBfsCenter(bfsInfo)
         
         # 构建八叉树，重新排列基函数
-        octree, reOrderID   =   OctreeInfo{eltype(bfcenters), LevelInfo}(bfcenters, leafCubeEdgel)
+        octree, reOrderID   =   OctreeInfo{eltype(bfcenters), LevelInfo}(bfcenters, leafCubeEdgel; nInterp = nInterp)
 
         # 叶层ID
         nLevels     =   max(keys(octree.levels)...)

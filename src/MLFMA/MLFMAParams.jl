@@ -25,6 +25,13 @@ function set_leafCubeSize!(cubel::FT = 0.25Params.λ_0) where {FT<:AbstractFloat
 end
 
 """
+获取叶层盒子边长
+"""
+function get_leafCubeSize()
+    MLFMAParams.LEAFCUBESIZE
+end
+
+"""
 设置插值算法
 """
 function set_Interpolation_Method!(method)

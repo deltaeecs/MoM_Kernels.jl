@@ -20,7 +20,7 @@ end
 """
 构建八叉树类
 """
-function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT; nLocalInterp = 6, 
+function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT; nInterp = 6, 
     IPT = get_Interpolation_Method(MLFMAParams.InterpolationMethod)) where{FT<:Real, LT<:AbstractLevel}
     
     println("构造八叉树中...")
@@ -63,7 +63,7 @@ function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT; nLocalInte
     println("预计算采样点、插值矩阵、相移因子、转移因子等信息中...")
     # 计算插值信息
     for ilevel in nLevels:-1:2
-        levels[ilevel].interpWθϕ    =   interpolationCSCMatCal(levels[ilevel-1].poles, levels[ilevel].poles, nLocalInterp)
+        levels[ilevel].interpWθϕ    =   interpolationCSCMatCal(levels[ilevel-1].poles, levels[ilevel].poles, nInterp)
     end
 
     # 预计算层间盒子的相移因子
