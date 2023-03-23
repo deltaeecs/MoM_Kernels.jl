@@ -20,7 +20,8 @@ end
 """
 构建八叉树类
 """
-function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT) where{FT<:Real, LT<:AbstractLevel}
+function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT; nLocalInterp = 6, 
+    IPT = get_Interpolation_Method(MLFMAParams.InterpolationMethod)) where{FT<:Real, LT<:AbstractLevel}
     
     println("构造八叉树中...")
     
@@ -29,7 +30,7 @@ function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT) where{FT<:
     nLevels <= 2 && error("层数过少，检查参数！")
 
     # 创建叶层
-    leafLevel       =   LT{Int, FT}()
+    leafLevel       =   LT{Int, FT, IPT{Int, FT}}()
     leafsIDSorted   =   setLevelInfo!(leafLevel, nLevels, leafnodes, leafCubeEdgelUsed, bigCubeLowerCoor)
 
     # 将叶层写入字典
@@ -43,7 +44,7 @@ function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT) where{FT<:
         # ilevel的盒子边长
         ilevelCubeEdgel =   leafCubeEdgelUsed*(2^(nLevels - ilevel))
         # 创建父层，同时输出子层盒子排序后的新id
-        levels[ilevel]  =   LT{Int, FT}()
+        levels[ilevel]  =   LT{Int, FT, IPT{Int, FT}}()
         levelsCubeIDSorted[ilevel + 1]  =   setLevelInfo!(levels[ilevel], ilevel, levels[ilevel + 1], ilevelCubeEdgel, bigCubeLowerCoor)
     end
 
@@ -61,8 +62,6 @@ function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT) where{FT<:
 
     println("预计算采样点、插值矩阵、相移因子、转移因子等信息中...")
     # 计算插值信息
-    # 插值点数
-    nLocalInterp::Int    =   NLocalInterpolation
     for ilevel in nLevels:-1:2
         levels[ilevel].interpWθϕ    =   interpolationCSCMatCal(levels[ilevel-1].poles, levels[ilevel].poles, nLocalInterp)
     end

@@ -43,7 +43,7 @@ end
 tLevel :: 本层
 kLevel :: 子层
 """
-function agg2HighLevel!(tLevel, kLevel)
+function agg2HighLevel!(tLevel, kLevel::LevelInfo{IT, FT, IPT}) where {IT, FT, IPT<:LagrangeInterpInfo}
     # 本层信息
     cubes   =   tLevel.cubes
     tAggS   =   tLevel.aggS
@@ -55,8 +55,9 @@ function agg2HighLevel!(tLevel, kLevel)
     # 从子层到本层的相移
     phaseShiftFromKids  =   tLevel.phaseShiftFromKids
     # 子层到本层的稀疏插值矩阵
-    θCSC    =   kLevel.interpWθϕ.θCSC
-    ϕCSC    =   kLevel.interpWθϕ.ϕCSC
+    interpWθϕ = kLevel.interpWθϕ
+    θCSC    =   interpWθϕ.θCSC
+    ϕCSC    =   interpWθϕ.ϕCSC
     # 预分配插值结果内存
     # aggSInterped =  zeros(eltype(tAggS), size(tAggS, 1), size(tAggS, 2))
     
@@ -112,6 +113,86 @@ function agg2HighLevel!(tLevel, kLevel)
                 # @views aggSInterped  .= θCSC*aggSInterpedϕ
                 @views mul!(aggSInterpedϕ2, ϕCSC, kAggS[:, :, kCubeID])
                 mul!(aggSInterped2, θCSC, aggSInterpedϕ2)
+
+                # 插值完毕进行子层到本层的相移，累加进父盒子聚合项
+                @views tAggS[:,:,iCube]   .+=   phaseShiftFromKids[:,kIn8] .* aggSInterped2
+
+            end # jkCube
+        end #iCube
+        # 恢复BLAS默认线程以防影响其他多线程函数
+        BLAS.set_num_threads(nthds)
+    end # if
+
+end # function
+
+
+"""
+从子层聚合到本层
+tLevel :: 本层
+kLevel :: 子层
+"""
+function agg2HighLevel!(tLevel, kLevel)
+    # 本层信息
+    cubes   =   tLevel.cubes
+    tAggS   =   tLevel.aggS
+    # 置零避免累加错误
+    tAggS  .=   0
+    CT      =   eltype(tAggS)
+    # 子层信息
+    kAggS   =   kLevel.aggS
+    # 从子层到本层的相移
+    phaseShiftFromKids  =   tLevel.phaseShiftFromKids
+    # 子层到本层的稀疏插值矩阵
+    interp  =   kLevel.interpWθϕ
+
+    nthds = nthreads()
+    # 对盒子循环
+    if nthds > length(cubes) # 线程数大于盒子数，用 BLAS 多线程
+        # 分配内存
+        # aggSInterpedϕ1  =   zeros(CT, size(ϕCSC, 1), size(kAggS, 2))
+        aggSInterped1   =   zeros(CT, size(tAggS, 1), size(kAggS, 2))
+        for iCube in eachindex(cubes)
+            cube    =   cubes[iCube]
+            # 对子盒子循环
+            # 子盒子数
+            nkCube  =   length(cube.kidsInterval)                
+            @inbounds for jkCube in 1:nkCube
+                # 子盒子id
+                kCubeID =   cube.kidsInterval[jkCube]
+                # 子盒子在8个子盒子中的id
+                kIn8    =   cube.kidsIn8[jkCube]
+                
+                # 将子盒子的辐射积分进行插值，必须按先 ϕ 后 θ 的顺序
+                interpolate!(aggSInterped1, interp, view(kAggS, :, :, kCubeID))
+
+                # 插值完毕进行子层到本层的相移，累加进父盒子聚合项
+                @views tAggS[:,:,iCube]   .+=   phaseShiftFromKids[:,kIn8] .* aggSInterped1
+            end # jkCube
+        end #iCube
+    else # 线程数小于盒子数，用 @threads 多线程
+        # 将本函数内的BLAS设为单线程
+        BLAS.set_num_threads(1)
+        # 分线程分配内存
+        # aggSInterpedϕs  =   zeros(CT, size(ϕCSC, 1), size(kAggS, 2), nthds)
+        aggSInterpeds   =   zeros(CT, size(tAggS, 1), size(kAggS, 2), nthds)
+        # 各个线程预分配内存
+        @threads for iCube in eachindex(cubes)
+            cube    =   cubes[iCube]
+            # 线程 id
+            tid     =   Threads.threadid()
+            # aggSInterpedϕ2   =   view(aggSInterpedϕs, :, :, tid)
+            aggSInterped2    =   view(aggSInterpeds, :, :, tid)
+            # 对子盒子循环
+            # 子盒子数
+            nkCube  =   length(cube.kidsInterval)
+            @inbounds for jkCube in 1:nkCube
+                # 子盒子id
+                kCubeID =   cube.kidsInterval[jkCube]
+                # 子盒子在8个子盒子中的id
+                kIn8    =   cube.kidsIn8[jkCube]
+                
+                # 将子盒子的辐射积分进行插值，必须按先 ϕ 后 θ 的顺序
+                interpolate!(aggSInterped2, interp, view(kAggS, :, :, kCubeID))
 
                 # 插值完毕进行子层到本层的相移，累加进父盒子聚合项
                 @views tAggS[:,:,iCube]   .+=   phaseShiftFromKids[:,kIn8] .* aggSInterped2
@@ -213,7 +294,7 @@ end #function
 tLevel :: 本层
 kLevel :: 子层
 """
-function disagg2KidLevel!(tLevel, kLevel)
+function disagg2KidLevel!(tLevel, kLevel::LevelInfo{IT, FT, IPT}) where {IT, FT, IPT<:LagrangeInterpInfo}
 
     # 本层信息
     cubes   =   tLevel.cubes
@@ -294,6 +375,96 @@ function disagg2KidLevel!(tLevel, kLevel)
     end # if
 
 end #function
+
+"""
+向低层解聚
+tLevel :: 本层
+kLevel :: 子层
+"""
+function disagg2KidLevel!(tLevel, kLevel)
+
+    # 本层信息
+    cubes   =   tLevel.cubes
+    tDisaggG    =   tLevel.disaggG
+    # 子层信息
+    kDisAggG    =   kLevel.disaggG
+    CT          =   eltype(kDisAggG)
+    # 从本层到子层的相移
+    phaseShift2Kids  =   tLevel.phaseShift2Kids
+    # 本层到子层的稀疏反插值矩阵
+    interp =  kLevel.interpWθϕ
+    # 对盒子循环
+    nthds = nthreads()
+    # 对盒子循环
+    if nthds > length(cubes) # 线程数大于盒子数，用 BLAS 多线程
+        # 对盒子循环
+        # 分配内存
+        disGshifted1    =   zeros(CT, size(tDisaggG, 1), size(tDisaggG, 2))
+        # disGInterpedθ1  =   zeros(CT, size(θCSCT, 1), size(tDisaggG, 2))
+        disGInterped1   =   zeros(CT, size(kDisAggG, 1), size(tDisaggG, 2))
+        @inbounds for iCube in eachindex(cubes)
+            cube    =   cubes[iCube]
+            @views tCubeDisaggG    =   tDisaggG[:,:,iCube]
+            # 对子盒子循环
+            # 子盒子数
+            nkCube  =   length(cube.kidsInterval)              
+            for jkCube in 1:nkCube
+                # 子盒子id
+                kCubeID =   cube.kidsInterval[jkCube]
+                # 子盒子在8个子盒子中的id
+                kIn8    =   cube.kidsIn8[jkCube]
+
+                # 进行本层到子层的相移，累加进父盒子聚合项
+                @views disGshifted1 .= phaseShift2Kids[:,kIn8] .* tCubeDisaggG
+                # mul!(disGInterpedθ1, θCSCT, disGshifted1)
+                # mul!(disGInterped1, ϕCSCT, disGInterpedθ1)
+                anterpolate!(disGInterped1, interp, disGshifted1)
+                
+                # @views kdisAggGAnterped = ϕCSCT*(θCSCT*(phaseShift2Kids[:,kIn8] .* tCubeDisaggG))
+                kDisAggG[:,:,kCubeID]   .+=  disGInterped1
+            end # jkCube
+        end #iCube
+    else  # 线程数小于盒子数，用 @threads 多线程
+        # 将本函数内的BLAS设为单线程
+        BLAS.set_num_threads(1)
+        # 分线程分配内存
+        disGshifteds    =   zeros(CT, size(tDisaggG, 1), size(tDisaggG, 2), nthds)
+        # disGInterpedθs  =   zeros(CT, size(θCSCT, 1), size(tDisaggG, 2), nthds)
+        disGInterpeds   =   zeros(CT, size(kDisAggG, 1), size(tDisaggG, 2), nthds)
+        # 对盒子循环
+        @threads for iCube in eachindex(cubes)
+            cube    =   cubes[iCube]
+            @views tCubeDisaggG    =   tDisaggG[:,:,iCube]
+            # 线程 id
+            tid     =   Threads.threadid()
+            disGshifted2    =   view(disGshifteds, :, :, tid)
+            # disGInterpedθ2  =   view(disGInterpedθs, :, :, tid)
+            disGInterped2   =   view(disGInterpeds, :, :, tid)
+            # 对子盒子循环
+            # 子盒子数
+            nkCube  =   length(cube.kidsInterval)              
+            @inbounds for jkCube in 1:nkCube
+                # 子盒子id
+                kCubeID =   cube.kidsInterval[jkCube]
+                # 子盒子在8个子盒子中的id
+                kIn8    =   cube.kidsIn8[jkCube]
+
+                # 进行本层到子层的相移，累加进父盒子聚合项
+                @views disGshifted2 .= phaseShift2Kids[:,kIn8] .* tCubeDisaggG
+                # mul!(disGInterpedθ2, θCSCT, disGshifted2)
+                # mul!(disGInterped2, ϕCSCT, disGInterpedθ2)
+                anterpolate!(disGInterped2, interp, disGshifted2)
+
+                # @views kdisAggGAnterped     =   ϕCSCT*(θCSCT*(phaseShift2Kids[:,kIn8] .* tCubeDisaggG))
+                kDisAggG[:,:,kCubeID]     .+=   disGInterped2
+            end # jkCube
+        end #iCube
+        # 恢复BLAS默认线程以防影响其他多线程函数
+        BLAS.set_num_threads(nthds)
+    end # if
+
+end #function
+
 
 """
 解聚到叶层

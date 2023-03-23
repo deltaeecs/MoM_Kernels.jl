@@ -38,14 +38,14 @@ phaseShift2Kids  ::Array{Complex{FT}, 3}，本层盒子到子层盒子的相移�
 αTrans      ::Array{Complex{FT}, 3}， 本层盒子远亲组之间的转移因子，根据相对位置共有 7^3 - 3^3 = 316 个
 αTransIndex ::Array{IT, 2}, 远亲盒子的相对位置到其转移因子在所有转移因子数组的索引
 """
-mutable struct LevelInfo{IT<:Integer, FT<:Real} <: AbstractLevel
+mutable struct LevelInfo{IT<:Integer, FT<:Real, IPT} <: AbstractLevel
     ID          ::IT
     L           ::IT
     nCubes      ::IT
     cubes       ::Vector{CubeInfo{IT, FT}}
     cubeEdgel   ::FT
     poles       ::PolesInfo{FT}
-    interpWθϕ   ::InterpInfo{IT, FT}
+    interpWθϕ   ::IPT
     aggS        ::Array{Complex{FT}, 3}
     disaggG     ::Array{Complex{FT}, 3}
     phaseShift2Kids     ::Array{Complex{FT}, 2}
@@ -53,10 +53,10 @@ mutable struct LevelInfo{IT<:Integer, FT<:Real} <: AbstractLevel
     αTrans      ::Array{Complex{FT}, 2}
     αTransIndex ::OffsetArray{IT, 3, Array{IT, 3}}
 
-    LevelInfo{IT, FT}() where {IT<:Integer, FT<:Real} = new{IT, FT}()
-    LevelInfo{IT, FT}(  ID, L, nCubes, cubes, cubeEdgel, poles, interpWθϕ, aggS, disaggG,
-                        phaseShift2Kids, phaseShiftFromKids, αTrans,  αTransIndex) where {IT<:Integer, FT<:Real} = 
-            new{IT, FT}(ID, L, nCubes, cubes, cubeEdgel, poles, interpWθϕ, aggS, disaggG,
+    LevelInfo{IT, FT, IPT}() where {IT<:Integer, FT<:Real, IPT<:InterpInfo} = new{IT, FT, IPT}()
+    LevelInfo{IT, FT, IPT}(  ID, L, nCubes, cubes, cubeEdgel, poles, interpWθϕ, aggS, disaggG,
+                        phaseShift2Kids, phaseShiftFromKids, αTrans,  αTransIndex) where {IT<:Integer, FT<:Real, IPT<:InterpInfo} = 
+            new{IT, FT, IPT}(ID, L, nCubes, cubes, cubeEdgel, poles, interpWθϕ, aggS, disaggG,
                         phaseShift2Kids, phaseShiftFromKids, αTrans,  αTransIndex)
 end
 
@@ -276,8 +276,8 @@ end
 """
 寻找子层的远亲盒子
 输入::
-thisLevel::LevelInfo{IT, FT}, 本层信息
-kidLevel::LevelInfo{IT, FT}， 子层信息
+thisLevel::LevelInfo{IT, FT, IPT}, 本层信息
+kidLevel::LevelInfo{IT, FT, IPT}， 子层信息
 """
 function setKidLevelFarNeighbors!(thisLevel, kidLevel)
     # 所有本层盒子
