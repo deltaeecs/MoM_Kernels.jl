@@ -119,7 +119,7 @@ function setLevelInfo!(level::LT, nLevels::Integer, leafnodes::Matrix{FT},
     end #for
     
     # 计算截断项数和角谱空间采样多极子信息
-    L::Int, poles    =   levelIntegralInfoCal(cubeEdgel)
+    L::Int, poles    =   levelIntegralInfoCal(cubeEdgel, Val(MLFMAParams.InterpolationMethod))
 
     # 将相关项写入level
     level.ID        =   nLevels
@@ -193,7 +193,7 @@ function setLevelInfo!(level, levelID::Integer, kidLevel, cubeEdgel::FT, bigCube
     end #for
 
     # 计算截断项数和角谱空间采样多极子信息
-    L::Int, poles    =   levelIntegralInfoCal(cubeEdgel)
+    L::Int, poles    =   levelIntegralInfoCal(cubeEdgel, Val(MLFMAParams.InterpolationMethod))
 
     # 将相关项写入level
     level.ID        =   levelID

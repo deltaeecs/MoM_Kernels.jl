@@ -102,7 +102,7 @@ levelCubeEdgel::FT,  层盒子边长, 一般叶层为0.25λ，其中 λ 为区�
 L           ::IT， 层 截断项
 levelsPoles ::Vector{GLPolesInfo{FT}}，从叶层到第 “2” 层的角谱空间采样信息
 """
-function levelIntegralInfoCal(levelCubeEdgel::FT) where{FT<:Real}
+function levelIntegralInfoCal(levelCubeEdgel::FT, ::Union{Val{:Lagrange2Step}, Val{:Lagrange1Step}}) where{FT<:Real}
     ## 计算截断项
     L = truncationLCal(levelCubeEdgel)
     
