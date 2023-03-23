@@ -61,6 +61,18 @@ function solve(A::LinearMapType{T}, b::AbstractVector{T};
     end
     save_memtime && restore_infos()
     saveCurrent(x; str = str)
+    # 相对残差结果
+    relresnorm  =   ch.data[:resnorm] / resnorm0
+
+    # 命令行绘图
+    SimulationParams.SHOWIMAGE  &&  convergencePlot(relresnorm)
+
+    # 将相对残差写入文件
+    open(joinpath(SimulationParams.resultDir, "$(solverT)_ch$str.txt"), "w") do io
+        for resi in relresnorm
+            write(io, "$resi\n" )
+        end
+    end
 
     return x, ch
 end
