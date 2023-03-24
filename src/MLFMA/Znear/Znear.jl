@@ -91,7 +91,7 @@ function initialZnearCSR(level, nbf::Int)
     # 确定近场元的总数、计算列起始位置指针
     nZnear  =   0
     # 对盒子循环
-    pmeter  =   Progress(nCubes, "Counting elements number of Znear...")
+    pmeter  =   Progress(nCubes; desc = "Counting elements number of Znear...", dt = 1)
     for iCube in eachindex(cubes)
         # 盒子信息
         cube    =   cubes[iCube]

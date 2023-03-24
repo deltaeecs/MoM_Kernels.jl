@@ -13,7 +13,7 @@ function calZnearCSCMFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
     # 叶层盒子数量
     nCubes      =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Near Impedance Matrix...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (RWG)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)

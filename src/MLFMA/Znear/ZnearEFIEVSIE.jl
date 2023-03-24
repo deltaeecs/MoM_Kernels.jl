@@ -29,7 +29,7 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (RWG + SWG)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (RWG + SWG)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -182,7 +182,7 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, hexasInfo::
     # 线程锁防止对同一数据写入出错
     lockZ   =   SpinLock()
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (RWG + RBF)...")
+    Progress(nCubes; desc = "Calculating Znear (RWG + RBF)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         # 盒子
@@ -340,7 +340,7 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
     # 线程锁防止对同一数据写入出错
     lockZ   =   SpinLock()
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (RWG + PWC)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (RWG + PWC)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
