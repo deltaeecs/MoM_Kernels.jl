@@ -470,10 +470,10 @@ function interpolationCSCMatCal(pLevelPoles::GLPolesInfo{FT}, tLevelPoles::GLPol
     dropzeros!(interpϕCSC)
 
     # 将权重保存插值类并返回
-    if MLFMAParams.InterpolationMethod == :Lagrange2Step 
-        return LagrangeInterpInfo(interpθCSC, interpϕCSC)
-    elseif MLFMAParams.InterpolationMethod == :Lagrange1Step
+    if MLFMAParams.InterpolationMethod == :Lagrange1Step
         return LagrangeInterp1StepInfo(interpθCSC, interpϕCSC)
+    else
+        return LagrangeInterpInfo(interpθCSC, interpϕCSC)
     end
 
 end
