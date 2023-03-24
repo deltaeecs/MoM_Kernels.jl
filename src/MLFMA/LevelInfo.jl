@@ -68,8 +68,9 @@ leafnodes::Matrix{FT},大小为 (3, n) 的用于分割成八叉树的空间点�
 cubeEdgel::FT，叶层盒子边长
 bigCubeLowerCoor::Vec3D{FT}， 大盒子的角坐标
 """
-function setLevelInfo!(level::LT, nLevels::Integer, leafnodes::Matrix{FT},
-    cubeEdgel::FT, bigCubeLowerCoor::Vec3D{FT}) where{LT<:AbstractLevel, FT<:Real}
+function setLevelInfo!(nLevels::Integer, leafnodes::Matrix{FT},
+    cubeEdgel::FT, bigCubeLowerCoor::Vec3D{FT}; 
+    IPT = get_Interpolation_Method(MLFMAParams.InterpolationMethod), LT = LevelInfo) where{FT<:Real}
     # 计算
     nleaves =   size(leafnodes, 2)
     # 每一个节点所在盒子的3Did（3列）+节点编号（1列）
@@ -121,6 +122,11 @@ function setLevelInfo!(level::LT, nLevels::Integer, leafnodes::Matrix{FT},
     # 计算截断项数和角谱空间采样多极子信息
     L::Int, poles    =   levelIntegralInfoCal(cubeEdgel, Val(MLFMAParams.InterpolationMethod))
 
+    level = if (typeof(poles) <: GLPolesInfo) && (!in(IPT, [LagrangeInterpInfo, LagrangeInterp1StepInfo]))
+        LT{Int, FT, LagrangeInterpInfo{Int, FT}}()
+    else
+        LT{Int, FT, IPT{Int, FT}}()
+    end
     # 将相关项写入level
     level.ID        =   nLevels
     level.L         =   L
@@ -131,7 +137,7 @@ function setLevelInfo!(level::LT, nLevels::Integer, leafnodes::Matrix{FT},
 
 
     # 层按盒子排序后的id
-    return kidsSorted
+    return level, kidsSorted
 
 end
 
@@ -141,7 +147,7 @@ levelID::计算层的id
 leafnodes::Matrix{FT},大小为 (3, n) 的用于分割成八叉树的空间点，如基函数的中心坐标
 cubeEdgel::FT，本层盒子边长
 """
-function setLevelInfo!(level, levelID::Integer, kidLevel, cubeEdgel::FT, bigCubeLowerCoor::Vec3D{FT}) where{FT<:Real}
+function setLevelInfo!(levelID::Integer, kidLevel, cubeEdgel::FT, bigCubeLowerCoor::Vec3D{FT}; IPT = get_Interpolation_Method(MLFMAParams.InterpolationMethod), LT = LevelInfo) where{FT<:Real}
     # 计算
     nkidCubes   =   length(kidLevel.cubes)
     # 每一个子盒子所在父盒子的3Did（3列）+子盒子点编号（1列）
@@ -175,7 +181,7 @@ function setLevelInfo!(level, levelID::Integer, kidLevel, cubeEdgel::FT, bigCube
     # 本层非空盒子数目
     nCubes  =   length(kidsIntervals) - 1
     # 创建盒子包含的子盒子区间切片向量并计算
-    kidsSlice       =   [kidsIntervals[i]:(kidsIntervals[i+1]-1) for i in 1:nCubes]
+    kidsSlice   =   [kidsIntervals[i]:(kidsIntervals[i+1]-1) for i in 1:nCubes]
     kidsIn8 =   [Vector{Int}(undef, length(kidSlice)) for kidSlice in kidsSlice]
     
     # 盒子的三维id
@@ -195,6 +201,11 @@ function setLevelInfo!(level, levelID::Integer, kidLevel, cubeEdgel::FT, bigCube
     # 计算截断项数和角谱空间采样多极子信息
     L::Int, poles    =   levelIntegralInfoCal(cubeEdgel, Val(MLFMAParams.InterpolationMethod))
 
+    level = if (typeof(poles) <: GLPolesInfo) && (!in(IPT, [LagrangeInterpInfo, LagrangeInterp1StepInfo]))
+        LT{Int, FT, LagrangeInterpInfo{Int, FT}}()
+    else
+        LT{Int, FT, IPT{Int, FT}}()
+    end
     # 将相关项写入level
     level.ID        =   levelID
     level.L         =   L
@@ -204,7 +215,7 @@ function setLevelInfo!(level, levelID::Integer, kidLevel, cubeEdgel::FT, bigCube
     level.poles     =   poles
 
     # 返回子层按盒子排序后的id
-    return kidCubesSorted
+    return level, kidCubesSorted
 
 end
 
