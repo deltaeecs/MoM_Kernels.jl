@@ -31,7 +31,7 @@ solverT::Symbol  求解器类型
 """
 function solve(A::LinearMapType{T}, b::AbstractVector{T};
     solverT::Symbol=:gmres, Pl = Identity(), Pr = Identity(), rtol = 1e-3,
-    maxiter = 1000, str = "", restart = 200, save_memtime = true) where{T<:Number}
+    maxiter = 1000, str = "", restart = 200, save_memtime = true, log = true, verbose = true, args...) where{T<:Number}
     # 直接求解
     solverT  == :direct  && begin
         println("Solving matrix function with LUD.")
@@ -57,7 +57,7 @@ function solve(A::LinearMapType{T}, b::AbstractVector{T};
     # 迭代求解
     println("Solving matrix function with iterate solver $solverT, \nwith initial resnorm $resnorm0.")
     @clock "迭代求解" begin
-        x, ch       =   solver(A, b; restart = restart, abstol = resnormtol, Pl = Pl, Pr = Pr,  log = true, verbose=true, maxiter = maxiter)
+        x, ch       =   solver(A, b; restart = restart, abstol = resnormtol, Pl = Pl, Pr = Pr,  log = log, verbose=verbose, maxiter = maxiter, args...)
     end
     save_memtime && restore_infos()
     saveCurrent(x; str = str)
@@ -87,7 +87,7 @@ solverT::Symbol  求解器类型
 """
 function solve!(A::LinearMapType{T}, x::AbstractVector{T}, b::AbstractVector{T}; 
     solverT::Symbol = :gmres!, Pl = Identity(), Pr = Identity(), rtol = 1e-3, 
-    maxiter = 1000, str = "", restart = 200, save_memtime = true) where{T<:Number}
+    maxiter = 1000, str = "", restart = 200, save_memtime = true, log = true, verbose = true, args...) where{T<:Number}
     # 直接求解
     solverT  == :direct  && begin
         println("Solving matrix function with LUD.")
@@ -113,7 +113,7 @@ function solve!(A::LinearMapType{T}, x::AbstractVector{T}, b::AbstractVector{T};
     # 迭代求解
     println("Solving matrix function with iterate solver $solverT, \nwith initial resnorm $resnorm0. ")
     @clock "迭代求解" begin
-        x, ch       =   solver(x, A, b; restart = restart, abstol = resnormtol, Pl = Pl, Pr = Pr,  log = true, verbose=true, maxiter = maxiter)
+        x, ch       =   solver(x, A, b; restart = restart, abstol = resnormtol, Pl = Pl, Pr = Pr,  log = log, verbose = verbose, maxiter = maxiter, args...)
     end
 
     save_memtime && restore_infos()
