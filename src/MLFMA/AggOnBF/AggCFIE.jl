@@ -29,6 +29,8 @@ end
 function aggSBFOnLevelCFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
     ::Type{BFT}) where {IT<:Integer, FT<:Real, BFT<:RWG}
     CT  =   Complex{FT}
+    fill!(aggSBF, 0)
+    fill!(disaggSBF, 0)
     # CFIE 混合系数
     α   =   Params.CFIEα
     # 层采样点
@@ -42,6 +44,7 @@ function aggSBFOnLevelCFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{Tria
     weightTridiv2   =   TriGQInfo.weight / 2
     # 常数
     JK_0 = Params.JK_0
+    CT0  = zero(CT)
     ntri = length(trianglesInfo)
 
     # Progress Meter
@@ -96,10 +99,10 @@ function aggSBFOnLevelCFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{Tria
                     # 该多极子
                     poler̂θϕ =   polesr̂sθsϕs[iPole]
                     # 聚合项初始化
-                    aggSθ   =   zero(CT)
-                    aggSϕ   =   zero(CT)
-                    disaggSθ   =   zero(CT)
-                    disaggSϕ   =   zero(CT)
+                    aggSθ   =   CT0
+                    aggSϕ   =   CT0
+                    disaggSθ   =   CT0
+                    disaggSϕ   =   CT0
                     # 对高斯求积点循环
                     for gi in 1:GQPNTri
                         ρi   =   ρs[:, gi]

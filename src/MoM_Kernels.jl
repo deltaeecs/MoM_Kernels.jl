@@ -9,8 +9,8 @@ using StaticArrays, OffsetArrays, SparseArrays
 using .Threads, ThreadsX, FLoops, FoldsThreads
 using LinearAlgebra, Statistics
 using FastGaussQuadrature, SpecialFunctions, GSL, LegendrePolynomials
-using IncompleteLU, IterativeSolvers
-using UnicodePlots
+using IncompleteLU, IterativeSolvers, LinearMaps
+using UnicodePlots, Printf
 
 export  inputParameters,
         getOctreeAndReOrderBFs!,
@@ -26,7 +26,12 @@ export  inputParameters,
         getMeshDataSaveGeosInterval, set_geosInterval!,
         saveGeosInfoChunks, saveVec2Chunks, getNeighborCubeIDs,
         saveOctree, saveCubes, saveLevel,
-        PartitionedVector
+        PartitionedVector,
+        gq_xsws_on_sphere
+
+# 计算信息保存
+include("Recorder.jl")
+
 # 输入函数
 include("Inputs.jl")
 

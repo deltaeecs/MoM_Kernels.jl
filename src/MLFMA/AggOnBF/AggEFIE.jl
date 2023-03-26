@@ -42,6 +42,8 @@ end
 """
 function aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
     ::Type{BFT}) where {IT<:Integer, FT<:Real, BFT<: RWG}
+    fill!(aggSBF, 0)
+    fill!(disaggSBF, 0)
     CT  =   Complex{FT}
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
@@ -54,6 +56,7 @@ function aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{Tria
     weightTridiv2   =   TriGQInfo.weight / 2
     # 常数
     JK_0 = Params.JK_0
+    CT0  = zero(CT)
     ntri = length(trianglesInfo)
 
     # Progress Meter
@@ -105,12 +108,12 @@ function aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{Tria
                     # 该多极子
                     poler̂θϕ =   polesr̂sθsϕs[iPole]
                     # 聚合项初始化
-                    aggSθ   =   zero(CT)
-                    aggSϕ   =   zero(CT)
+                    aggSθ   =   CT0
+                    aggSϕ   =   CT0
                     # 对高斯求积点循环
                     for gi in 1:GQPNTri
                         # 公用的 指数项和权重边长
-                        expWlntemp =   exp(JK_0*(poler̂θϕ.r̂ ⋅ cubeC2rgs[:,gi]))*(weightTridiv2[gi]*ln)
+                        expWlntemp =   exp(JK_0*(poler̂θϕ.r̂ ⋅ view(cubeC2rgs, :, gi)))*(weightTridiv2[gi]*ln)
                         # 在 θϕ 方向累加
                         @views aggSθ += (poler̂θϕ.θhat ⋅ ρs[:, gi])*expWlntemp
                         @views aggSϕ += (poler̂θϕ.ϕhat ⋅ ρs[:, gi])*expWlntemp
@@ -161,6 +164,8 @@ end
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
     ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:SWG}
+    fill!(aggSBF, 0)
+    fill!(disaggSBF, 0)
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -172,6 +177,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{Tet
     weightTetradiv3   =   TetraGQInfo.weight / 3
     # 常数
     JK_0 = Params.JK_0
+    CT0  = zero(CT)
     # 判断体电流的离散方式
     discreteJ::Bool = SimulationParams.discreteVar == "J"
     # 是否为偏置数组
@@ -233,8 +239,8 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{Tet
                     # 该多极子
                     poler̂θϕ =   polesr̂sθsϕs[iPole]
                     # 聚合项初始化
-                    aggSθ   =   zero(CT)
-                    aggSϕ   =   zero(CT)
+                    aggSθ   =   CT0
+                    aggSϕ   =   CT0
                     # 对高斯求积点循环
                     for gi in 1:GQPNTetra
                         # 公用的 指数项和权重边长
@@ -269,6 +275,8 @@ end
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
     ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
+    fill!(aggSBF, 0)
+    fill!(disaggSBF, 0)
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -373,6 +381,8 @@ end
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}}, 
     ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
+    fill!(aggSBF, 0)
+    fill!(disaggSBF, 0)
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -389,6 +399,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{Hexa
     geoInterval =   getGeosInterval(hexasInfo)
     # 常数
     JK_0 = Params.JK_0
+    CT0  = zero(CT)
     # Progress Meter
     pmeter  =   Progress(nCubes, "Aggregating on PWC (EFIE)...")
     # 对盒子循环计算
@@ -432,8 +443,8 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{Hexa
                     # 该多极子
                     poler̂θϕ =   polesr̂sθsϕs[iPole]
                     # 聚合项初始化
-                    aggSθ   =   zero(CT)
-                    aggSϕ   =   zero(CT)
+                    aggSθ   =   CT0
+                    aggSϕ   =   CT0
                     # 对高斯求积点循环
                     for gi in 1:GQPNHexa
                         # 公用的 指数项和权重边长
@@ -468,6 +479,8 @@ end
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{VT}, 
     ::Type{BFT}) where {VT<:HexahedraInfo, BFT<:RBF}
     CT  =   Precision.CT
+    fill!(aggSBF, 0)
+    fill!(disaggSBF, 0)
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -479,6 +492,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{VT},
     weightHexa  =   HexaGQInfo.weight
     # 常数
     JK_0 = Params.JK_0
+    CT0  = zero(CT)
     # 判断体电流的离散方式
     discreteJ::Bool = SimulationParams.discreteVar == "J"
     # 几何信息索引区间
@@ -547,8 +561,8 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{VT},
                     # 该多极子
                     poler̂θϕ =   polesr̂sθsϕs[iPole]
                     # 聚合项初始化
-                    aggSθ   =   zero(CT)
-                    aggSϕ   =   zero(CT)
+                    aggSθ   =   CT0
+                    aggSϕ   =   CT0
                     # 对高斯求积点循环
                     for gi in 1:GQPNHexa
                         # 公用的 指数项和权重边长

@@ -34,13 +34,6 @@ function integral1DXW(lb::FT, hb::FT, Nsample::IT, mod::Symbol) where{IT<:Intege
         XGL, WGL    =   gausslegendre(Nsample)
         X   .=   center .+ Dx .* XGL
         W   .=   abs(Dx) .* WGL
-        
-        # Xtmp = zeros(FT, Nsample+2)
-        # Wtmp = zeros(FT, Nsample+2)
-        # Xtmp[2:(end-1)], Wtmp[2:(end-1)] = X, W
-        # Xtmp[1], Xtmp[end] = lb, hb
-        # Wtmp[1], Wtmp[end] = 0, 0
-        # X, W = Xtmp, Wtmp
     else
         throw("仅接受 :uni, 均值积分 :glq, 高斯-勒让德积分 两种模式")
     end
@@ -58,18 +51,10 @@ mod::Symbol， 模式，接受 :uni, 均值积分(ϕ方向) :glq, 高斯-勒让�
 """
 function octreeXWNCal(lb::FT, hb::FT, L::IT, mod::Symbol) where{IT<:Integer, FT<:Real}
 
-    # if mod == :uni # 均值积分
-    #     NSampleMax  = 2*L
-    # elseif mod == :glq # 高斯-勒让德积分
-    #     NSampleMax  =  L + 1
-    # else
-    #     throw("仅接受 :uni, 均值积分 :glq, 高斯-勒让德积分 两种模式")
-    # end
-    N = 0
-    if mod == :uni  # 均值积分
-        N   = 2*(L + 1)
+    N = if mod == :uni  # 均值积分
+        2*(L + 1)
     elseif mod == :glq  # 高斯-勒让德积分
-        N   =    L + 1
+        L + 1
     else
         throw("仅接受 :uni, 均值积分 :glq, 高斯-勒让德积分 两种模式")
     end
@@ -79,6 +64,32 @@ function octreeXWNCal(lb::FT, hb::FT, L::IT, mod::Symbol) where{IT<:Integer, FT<
     return Xs, Ws
 end
 
+"""
+    gq_xsws_on_sphere(L)
+
+    计算单位球面 2(L+1) 阶高斯求积的采样点坐标权重
+
+TBW
+"""
+function gq_xsws_on_sphere(L; FT = Precision.FT)
+
+    ## 积分点和求积权重数据
+    # θ方向
+    Xcosθs, Wθs   =   octreeXWNCal(one(FT), -one(FT), L, :glq)
+    # 将θ方向高斯-勒让德求积坐标从 [1.,-1.] 转换到 [0,π]
+    Xθs      =   acos.(Xcosθs)
+    # ϕ方向
+    Xϕs, Wϕs = octreeXWNCal(zero(FT), convert(FT, 2π), L, :uni)
+    
+    # 所有采样点直角坐标
+    nodes = reduce(hcat, [sphere2cart(1, θ, ϕ) for ϕ in Xϕs for θ in Xθs ])
+
+    # 所有采样点权重
+    ws =  [Wθ * Wϕ for Wϕ in Wϕs for Wθ in Wθs]
+
+    return nodes, ws
+
+end
 
 """
 多极子的极信息，即角谱空间采样信息
@@ -112,10 +123,6 @@ function levelIntegralInfoCal(levelCubeEdgel::FT) where{FT<:Real}
     Xθs      =   acos.(Xcosθs)
     # ϕ方向
     Xϕs, Wϕs = octreeXWNCal(zero(FT), convert(FT, 2π), L, :uni)
-
-    # # 计算顶层 θϕ 坐标数据，用于远场计算
-    # Xθs_coarsest = θ_obs
-    # Xphis_coarsest   = Phi_obs
     
     # 将数据保存在 levelsPoles 中，按照 θ 方向连续的顺序，将所有采样点信息保存为一向量
     # 计算所有极子的信息

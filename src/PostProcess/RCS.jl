@@ -8,7 +8,7 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙlₙρₙ/2)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
 function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, 
-    trianglesInfo::Vector{ST}, ::Type{BFT} = VSBFTypes.sbfType) where {CT<:Complex, ST<:TriangleInfo, BFT<:RWG}
+    trianglesInfo::Vector{ST}, ::Type{BFT} = VSBFTypes.sbfType; str = "") where {CT<:Complex, ST<:TriangleInfo, BFT<:RWG}
     FT = Precision.FT
     # 高斯求积点电流权重乘积
     Jtris       =   electricJCal(ICoeff, trianglesInfo)
@@ -44,7 +44,9 @@ function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT},
     # 总的RCS
     RCS         =   RCSθsϕs[1, :, :] + RCSθsϕs[2, :, :]
     RCSdB       =   10log10.(RCS)
-    # 绘图并保存数据
+    # 保存数据
+    save_RCS(θs_obs, ϕs_obs, RCS; str=str)
+    # 绘图
     RCSPlot(θs_obs, ϕs_obs, RCS, RCSdB)
     # 返回
     return RCSθsϕs, RCSθsϕsdB, RCS, RCSdB
@@ -61,7 +63,7 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙsₙρₙ/3)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
 function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vector{VT}, 
-                            bfT::Type{BFT} = VSBFTypes.vbfType) where {VT<:VolumeCellType, CT<:Complex, BFT<:BasisFunctionType}
+                            bfT::Type{BFT} = VSBFTypes.vbfType; str = "") where {VT<:VolumeCellType, CT<:Complex, BFT<:BasisFunctionType}
     FT = Precision.FT
     # 高斯求积点电流权重乘积
     Jgeos       =   geoElectricJCal(ICoeff, geosInfo, bfT)
@@ -95,7 +97,9 @@ function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vecto
     # 总的RCS
     @views RCS  =   RCSθsϕs[1, :, :] .+ RCSθsϕs[2, :, :]
     RCSdB       =   10log10.(RCS)
-    # 绘图并保存数据
+    # 保存数据
+    save_RCS(θs_obs, ϕs_obs, RCS; str=str)
+    # 绘图
     RCSPlot(θs_obs, ϕs_obs, RCS, RCSdB)
     # 返回
     return RCSθsϕs, RCSθsϕsdB, RCS, RCSdB
@@ -112,7 +116,7 @@ N(θ, ϕ) =   ∑ₙ(∫ₛ Jˢ exp( jkr̂(θ, ϕ)⋅rₙ ) dS)
         =   ∑ₙ(∑ᵢWᵢ(∑ₜₙ₌₁³ Iₙsₙρₙ/3)exp(jkr̂(θ, ϕ)⋅rₙ) )
 """
 function radarCrossSection(θs_obs, ϕs_obs,
-    ICoeff::Vector{CT}, geosInfo::Vector{VT}) where {CT<:Complex, VT<:AbstractVector}
+    ICoeff::Vector{CT}, geosInfo::Vector{VT}; str = "") where {CT<:Complex, VT<:AbstractVector}
     FT = Precision.FT
     # 面网格、体网格
     tris    =   geosInfo[1]
@@ -153,11 +157,19 @@ function radarCrossSection(θs_obs, ϕs_obs,
     # 总的RCS
     @views RCS  =   RCSθsϕs[1, :, :] .+ RCSθsϕs[2, :, :]
     RCSdB       =   10log10.(RCS)
+    # 保存数据
+    save_RCS(θs_obs, ϕs_obs, RCS; str=str)
     # 绘图
     RCSPlot(θs_obs, ϕs_obs, RCS, RCSdB)
 
+    # 返回
+    return RCSθsϕs, RCSθsϕsdB, RCS, RCSdB
+
+end # end function
+
+function save_RCS(θs_obs, ϕs_obs, RCS; str="")
     # 保存数据
-    open(SimulationParams.resultDir*"RCSm2.txt", "w") do io
+    open(SimulationParams.resultDir*"farEm2$str.txt", "w") do io
         θs_obs_deg  =   θs_obs/pi*180
         ϕs_obs_deg  =   ϕs_obs/pi*180
         for θii in 1:length(θs_obs_deg)
@@ -168,11 +180,7 @@ function radarCrossSection(θs_obs, ϕs_obs,
             write(io, "\n")
         end
     end
-    # 返回
-    return RCSθsϕs, RCSθsϕsdB, RCS, RCSdB
-
-end # end function
-
+end
 
 """
 RCS 绘图

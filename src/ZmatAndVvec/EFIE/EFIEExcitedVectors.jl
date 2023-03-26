@@ -8,7 +8,7 @@ nbf             ::Integer，基函数数目
 function excitationVectorEFIE!(V::Vector{Complex{FT}}, source::ST, trianglesInfo::Vector{TriangleInfo{IT, FT}}, sbfType = VSBFTypes.sbfType) where{ST<:ExcitingSources, IT<:Integer, FT<:Real}
     
     nt  =   length(trianglesInfo)
-    pmeter  =   Progress(nt, "Calculating V...")
+    pmeter  =   Progress(nt; desc = "Calculating V...", dt = 1)
     lockV   =   SpinLock()
     # 开始对四面体形循环计算
     @threads for i in 1:nt
@@ -123,7 +123,7 @@ function excitationVectorEFIE!(V::Vector{Complex{FT}}, source::ST, tetrasInfo::A
 
     # print("Calculating Excitation Vector...")
     nt  =   length(tetrasInfo)
-    pmeter  =   Progress(nt, "Calculating V...")
+    pmeter  =   Progress(nt; desc = "Calculating V...", dt = 1)
     lockV   =   SpinLock()
     # 开始对四面体形循环计算
     @threads for i in eachindex(tetrasInfo)
@@ -230,7 +230,7 @@ function excitationVectorEFIE!(V::Vector{CT}, source::ST, hexasInfo::AbstractVec
 
     # print("Calculating Excitation Vector...")
     n   =   length(hexasInfo)
-    pmeter  =   Progress(n, "Calculating V...")
+    pmeter  =   Progress(n; desc = "Calculating V...", dt = 1)
     lockV   =   SpinLock()
     # 开始对四面体形循环计算
     @threads for i in eachindex(hexasInfo)

@@ -14,7 +14,7 @@ function calZnearCSCEFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
     # 叶层盒子数量
     nCubes      =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (RWG)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (RWG)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -197,7 +197,7 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (SWG)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (SWG)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -415,23 +415,12 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
         end
     end
 
-    # # 真正用到的盒子区间
-    # cubeIDsUsed =   getCubeIDsWithGeos(geoInterval, cubes)
-
-    # # 判断体电流的离散方式
-    # discreteJ::Bool =  (SimulationParams.discreteVar === "J")
-    # # 叶层盒子数量
-    # nCubes      =   length(cubeIDsUsed)
-    # # Progress Meter
-    # pmeter  =   Progress(nCubes, "Calculating Znear (Tetra, PWC)...")
-    # # 对盒子循环计算@floop WorkStealingEx(; basesize = 1 )
-    # @threads for iCube in cubeIDsUsed
     # 判断体电流的离散方式
     discreteJ::Bool =   SimulationParams.discreteVar === "J"
     # 叶层盒子数量
     nCubes      =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (PWC)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (PWC)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -576,7 +565,7 @@ function calZnearCSCEFIEnew!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, 
     # 叶层盒子数量
     nCubes      =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (RBF)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (RBF)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -739,7 +728,7 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
     # 线程锁防止对同一数据写入出错
     lockZ   =   SpinLock()
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (RBF)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (RBF)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -905,7 +894,7 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
     # 叶层盒子数量
     nCubes      =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (PWC)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (PWC)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -1058,7 +1047,7 @@ function calZnearCSCEFIE!(  level, geos1Info::AbstractVector{VT1}, geos2Info::Ab
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Calculating Znear (PWC + PWC)...")
+    pmeter  =   Progress(nCubes; desc = "Calculating Znear (PWC + PWC)...", dt = 1)
     # 对盒子循环计算@threads
     @floop WorkStealingEx(; basesize = 1 ) for iCube in 1:nCubes
         next!(pmeter)

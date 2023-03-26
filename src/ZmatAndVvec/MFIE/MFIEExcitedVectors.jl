@@ -8,7 +8,7 @@ nbf             ::Integer，基函数数目
 function excitationVectorMFIE!(V::Vector{Complex{FT}}, source::ST, trianglesInfo::Vector{TriangleInfo{IT, FT}}, sbfType = VSBFTypes.sbfType) where{ST<:ExcitingSources, IT<:Integer, FT<:Real}
     
     nt  =   length(trianglesInfo)
-    pmeter  =   Progress(nt, "Calculating V...")
+    pmeter  =   Progress(nt; desc = "Calculating V...", dt = 1)
     lockV   =   SpinLock()
     # 开始对四面体形循环计算
     @threads for i in 1:nt
