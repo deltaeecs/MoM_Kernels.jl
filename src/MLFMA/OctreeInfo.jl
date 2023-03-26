@@ -25,6 +25,7 @@ function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT; nInterp = 
     println("构造八叉树中...")
     
     # 构建将叶点完全覆盖的“大盒子”, 其中leafCubeEdgelUsed为计算出的实际使用的叶层盒子边长
+    set_leafCubeSize!(leafCubeEdgel)
     nLevels, bigCubeLowerCoor,  leafCubeEdgelUsed  =   setBigCube(leafnodes, leafCubeEdgel)
     nLevels <= 2 && error("层数过少，检查参数！")
 
