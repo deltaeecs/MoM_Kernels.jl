@@ -5,7 +5,18 @@
 输入为本层最小盒子的边长
 """
 function truncationLCal(cubel::FT) where {FT<:Real}
-    L = floor(Int, cubel*real(Params.K_0)*sqrt(3) + 2.16*MLFMAParams.NBDIGITS^(2.0/3.0)*(cubel*real(Params.K_0))^(1/3))
+    truncationLCal(;rel_l = cubel/Params.λ_0)
+    return L
+end
+
+"""
+    truncationLCal(;rel_l) where {FT<:Real}
+
+该函数计算八叉树各层截断项数
+输入为相对波长
+"""
+function truncationLCal(;rel_l)
+    L = floor(Int, 2π*rel_l*sqrt(3) + 2.16*NBDIGITS^(2.0/3.0)*(2π*rel_l)^(1/3))
     return L
 end
 
