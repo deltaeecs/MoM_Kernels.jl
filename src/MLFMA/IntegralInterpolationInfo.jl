@@ -16,7 +16,7 @@ end
 输入为相对波长
 """
 function truncationLCal(;rel_l)
-    L = floor(Int, 2π*rel_l*sqrt(3) + 2.16*NBDIGITS^(2.0/3.0)*(2π*rel_l)^(1/3))
+    L = floor(Int, 2π*rel_l*sqrt(3) + 2.16*MLFMAParams.NBDIGITS^(2.0/3.0)*(2π*rel_l)^(1/3))
     return L
 end
 
