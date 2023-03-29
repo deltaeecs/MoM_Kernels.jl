@@ -15,8 +15,12 @@ end
 输入为相对波长
 """
 function truncationLCal(;rel_l)
-    L = floor(Int, 2π*rel_l*sqrt(3) + 2.16*MLFMAParams.NBDIGITS^(2.0/3.0)*(2π*rel_l)^(1/3))
+    L = floor(Int, truncation_kernel(rel_l))
     return L
+end
+
+function truncation_kernel(rel_l)
+    return 2π*rel_l*sqrt(3) + 2.16*MLFMAParams.NBDIGITS^(2.0/3.0)*(2π*rel_l)^(1/3)
 end
 
 ## 球面多极子（采样点）信息抽象类型
