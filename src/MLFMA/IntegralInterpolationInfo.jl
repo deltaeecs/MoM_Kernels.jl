@@ -6,7 +6,6 @@
 """
 function truncationLCal(cubel::FT) where {FT<:Real}
     truncationLCal(;rel_l = cubel/Params.λ_0)
-    return L
 end
 
 """
