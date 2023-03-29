@@ -194,8 +194,7 @@ function calαTransOnLevel!(level, truncL, all316FarNeighID, all343InFar316)
             # k̂
             k̂   =  r̂θϕ.r̂
             # k̂ ⋅ R̂ab
-            cosϕ    =   k̂ ⋅ R̂ab
-            cosϕ   /=  abs(cosϕ)
+            cosϕ = clamp(k̂ ⋅ R̂ab, -1., 1.)
 
             # 勒让德多项式在每一次的累加循环里计算，此处直接计算出所有的 (0-truncL) 为索引
             legendrePls =   collectPl(cosϕ, lmax = truncL)
