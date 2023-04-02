@@ -16,11 +16,11 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
     # 常数
     Rsglr   =   Params.Rsglr
     # 是否为偏置数组（用于混合网格）
-    ntetra      =   length(tetrasInfo)
-    isoffset    =   isa(tetrasInfo, OffsetVector)
+    ntetra      =   length(tetras)
+    isoffset    =   isa(tetras, OffsetVector)
     geoInterval =   begin
         isoffset ? begin
-            st  =   (eachindex(tetrasInfo).offset) + 1
+            st  =   (eachindex(tetras).offset) + 1
             st:(st - 1 + ntetra)
         end : begin
             1:ntetra
