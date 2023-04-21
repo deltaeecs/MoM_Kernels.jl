@@ -26,10 +26,12 @@ using MoM_Basics:acrossbcrossc
 计算某层聚合项, 输入为三角形信息和 RWG 基函数信息
 """
 function aggSBFOnLevelMFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
-    ::Type{BFT}) where {IT<:Integer, FT<:Real, BFT<:RWG}
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, BFT<:RWG}
     CT  =   Complex{FT}
-    fill!(aggSBF, 0)
-    fill!(disaggSBF, 0)
+    setzero && begin 
+        fill!(aggSBF, 0)
+        fill!(disaggSBF, 0)
+    end
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引

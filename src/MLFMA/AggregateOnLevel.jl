@@ -58,11 +58,11 @@ function getAggSBFOnLevel(level, geosInfoV::Vector{VT1},
             aggSBFOnLevelCFIE!(aggSBF, disaggSBF, level, geoSs, eltype(bfSs))
         end
         # 体部分
-        aggSBFOnLevel!(aggSBF, disaggSBF, level, geoVs, eltype(bfVs))
+        aggSBFOnLevel!(aggSBF, disaggSBF, level, geoVs, eltype(bfVs); setzero = false)
     else
         for i in 1:length(geosInfoV)
             geosInfo = geosInfoV[i]
-            aggSBFOnLevel!(aggSBF, disaggSBF, level, geosInfo, eltype(bfsInfo[i]))
+            aggSBFOnLevel!(aggSBF, disaggSBF, level, geosInfo, eltype(bfsInfo[i]); setzero = false)
         end
     end
 
