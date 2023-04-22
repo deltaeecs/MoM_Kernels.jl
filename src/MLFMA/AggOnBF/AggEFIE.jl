@@ -41,9 +41,11 @@ end
 计算某层聚合项, 输入为三角形信息和 RWG 基函数信息
 """
 function aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
-    ::Type{BFT}) where {IT<:Integer, FT<:Real, BFT<: RWG}
-    fill!(aggSBF, 0)
-    fill!(disaggSBF, 0)
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, BFT<: RWG}
+    setzero && begin 
+        fill!(aggSBF, 0)
+        fill!(disaggSBF, 0)
+    end
     CT  =   Complex{FT}
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
@@ -163,9 +165,11 @@ end
 计算某层聚合项, 输入为四面体信息和 SWG 基函数信息
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
-    ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:SWG}
-    fill!(aggSBF, 0)
-    fill!(disaggSBF, 0)
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:SWG}
+    setzero && begin 
+        fill!(aggSBF, 0)
+        fill!(disaggSBF, 0)
+    end
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -274,9 +278,11 @@ end
 计算某层聚合项, 输入为四面体信息和 PWC 基函数信息
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
-    ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
-    fill!(aggSBF, 0)
-    fill!(disaggSBF, 0)
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
+    setzero && begin 
+        fill!(aggSBF, 0)
+        fill!(disaggSBF, 0)
+    end
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -380,9 +386,11 @@ end
 计算某层聚合项, 输入为六面体信息和 PWC 基函数信息
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}}, 
-    ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
-    fill!(aggSBF, 0)
-    fill!(disaggSBF, 0)
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
+    setzero && begin 
+        fill!(aggSBF, 0)
+        fill!(disaggSBF, 0)
+    end
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -477,10 +485,12 @@ end
 计算某层聚合项, 输入为六面体信息和 RBF 基函数信息
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{VT}, 
-    ::Type{BFT}) where {VT<:HexahedraInfo, BFT<:RBF}
+    ::Type{BFT}; setzero = true) where {VT<:HexahedraInfo, BFT<:RBF}
     CT  =   Precision.CT
-    fill!(aggSBF, 0)
-    fill!(disaggSBF, 0)
+    setzero && begin 
+        fill!(aggSBF, 0)
+        fill!(disaggSBF, 0)
+    end
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
