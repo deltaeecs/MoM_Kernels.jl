@@ -212,7 +212,7 @@ function interpolationCSCMatCal(pLevelPoles::PolesInfo{FT}, tLevelPoles::PolesIn
     interWθs    =   ones(FT, (nlocalInterp, npXθs))
     interIDθs   =   zeros(IT, (nlocalInterp, npXθs))
     # 插值点的相对坐标（[-nlocalInterp/2 : nlocalInterp/2 ]）
-    RelativeOffsets =   (1:nlocalInterp) .- nlocalInterp ÷ 2
+    RelativeOffsets =   (1:nlocalInterp) .- (nlocalInterp ÷ 2)
     # 对目标插值点循环计算其插值点
     @inbounds for ipXθs in 1:npXθs
         pθIntθ  =   pθsIntθs[ipXθs]

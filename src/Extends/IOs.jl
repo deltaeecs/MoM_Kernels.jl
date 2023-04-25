@@ -203,7 +203,7 @@ function saveLevel(level, np = ParallelParams.nprocs; dir="", kcubeIndices = not
 
     partition =   get_partition(length(cubes), sizePoles, np)
 
-    indices = saveCubes(cubes, partition[3]; name = "Level_$(level.ID)_Cubes", dir=dir, kcubeIndices = kcubeIndices)
+    indices = saveCubes(cubes, partition; name = "Level_$(level.ID)_Cubes", dir=dir, kcubeIndices = kcubeIndices)
 
     # 保存
     jldsave(joinpath(dir, "Level_$(level.ID).jld2"), data = level)
@@ -215,7 +215,7 @@ function saveLevel(level, np = ParallelParams.nprocs; dir="", kcubeIndices = not
 end
 
 """
-这四个函数用于寻找盒子的子盒子区间内的比较函数，多重分派以实现
+这六个函数用于寻找盒子的子盒子区间内的比较函数，多重分派以实现
 """
 func4Cube1stkInterval(cube::CubeInfo) = first(cube.kidsInterval)
 func4Cube1stkInterval(i::T) where T <: Integer = i
@@ -225,12 +225,20 @@ func4CubelastkInterval(i::T) where T <: Integer = i
 func4CubelastkInterval(interval::T) where T <: UnitRange = last(interval)
 
 """
+根据 partition 计算在盒子方向本层所有 rank 到子层所有 rank 的 map。
+"""
+function get_partition_map(partition, kcubeIndices)
+    collect(eachcol(reshape(repeat(1:length(kcubeIndices), inner = prod(partition) ÷ length(kcubeIndices)), :, partition[3])))
+end
+
+"""
     saveCubes(cubes, nchunk = ParallelParams.nprocs; name, dir="", kcubeIndices = nothing)
 
     保存盒子。
 TBW
 """
-function saveCubes(cubes, nchunk = ParallelParams.nprocs; name, dir="", kcubeIndices = nothing)
+function saveCubes(cubes, partition; name, dir="", kcubeIndices = nothing)
+    nchunk = partition[3]
 	!ispath(dir) && mkpath(dir)
     # 对盒子按 盒子数 和块数分块
 	indices =   sizeChunks2idxs(length(cubes), nchunk)
@@ -240,14 +248,14 @@ function saveCubes(cubes, nchunk = ParallelParams.nprocs; name, dir="", kcubeInd
     pmeter  =  Progress(length(indices), "Saving cubes...")
 
     # 重新组合 kcubeIndices，以避免层间分区不在同一维度时 子盒子区间计算错误
-    kindices =  isnothing(kcubeIndices) ? nothing : sizeChunks2idxs(length(kcubeIndices), nchunk)
+    kindices =  isnothing(kcubeIndices) ? nothing : get_partition_map(partition, kcubeIndices)
     @floop for (i, indice) in enumerate(indices)
         data = OffsetVector(cubes[indice...], indice...)
         idcs = indice[1]
         ghostindices::Vector{Int} = setdiff(cubesFarNeighbors_ChunksIndices[i][1], indice[1])
         # 子盒子与本层盒子区间错位时也会产生 ghost 数据需要保存在本地
         !isnothing(kcubeIndices) && begin
-            tCubesInterval  =   last(searchsorted(cubes, first(kcubeIndices[first(kindices[i][1])]); by = func4Cube1stkInterval)):first(searchsorted(cubes, last(kcubeIndices[last(kindices[i][1])]); by = func4CubelastkInterval))
+            tCubesInterval  =   last(searchsorted(cubes, first(kcubeIndices[first(kindices[i])]); by = func4Cube1stkInterval)):first(searchsorted(cubes, last(kcubeIndices[last(kindices[i])]); by = func4CubelastkInterval))
             otherGhostIdcs  =   setdiff(tCubesInterval, indice[1])
             # 将此部分 idcs 补充进来
             unique!(sort!(append!(ghostindices, otherGhostIdcs)))
