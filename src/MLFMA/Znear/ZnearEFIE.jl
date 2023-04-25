@@ -83,7 +83,7 @@ function calZnearCSCEFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
             #= 场三角形与源三角形在不在一个盒子？因为程序利用了PEC目标的EFIE矩阵的对称性
             进行对称位置阻抗矩阵元的计算，要避免对同一个盒子内阻抗矩阵元的重复计算 =#
             # tins  =   nearCubesTriID[iTri] in cubeTriID
-            tins  =   !isempty(searchsorted(cubeTriID, nearCubesTriID[iTri]))
+            # tins  =   !isempty(searchsorted(cubeTriID, nearCubesTriID[iTri]))
             # 测试三角形包含的三个测试基函数是否在所有邻盒子（测试盒子）的基函数（测试基函数）区间内
             msInInterval    =   [!isempty(searchsorted(nearCubeBFindices, m)) for m in trit.inBfsID]
 

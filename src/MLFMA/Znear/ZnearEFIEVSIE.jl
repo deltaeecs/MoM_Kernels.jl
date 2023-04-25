@@ -17,15 +17,8 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
     Rsglr   =   Params.Rsglr
     # 是否为偏置数组（用于混合网格）
     ntetra      =   length(tetras)
-    isoffset    =   isa(tetras, OffsetVector)
-    geoInterval =   begin
-        isoffset ? begin
-            st  =   (eachindex(tetras).offset) + 1
-            st:(st - 1 + ntetra)
-        end : begin
-            1:ntetra
-        end
-    end
+    # 几何信息索引区间
+    geoInterval =   getGeosInterval(tetras)
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # Progress Meter
@@ -49,8 +42,6 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
         nNearCubeCal    =   0
         @inbounds for j in eachindex(cube.neighbors)
             jNearCube   =   cube.neighbors[j]
-            # 由矩阵对称性可跳过编号较小的盒子
-            jNearCube >  iCube && continue
             nNearCubeCal += 1
             # 邻盒子
             nearCube    =   cubes[jNearCube]
@@ -75,8 +66,6 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
         nNearCubeGeoPtr =   1
         @inbounds for j in eachindex(cube.neighbors)
             jNearCube   =   cube.neighbors[j]
-            # 由矩阵对称性可跳过编号较小的盒子
-            jNearCube >  iCube && continue
             # 邻盒子
             nearCube    =   cubes[jNearCube]
             # 写入邻四面体
@@ -325,16 +314,8 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
     cubesIndices    =   eachindex(cubes)
     # 常数
     Rsglr   =   Params.Rsglr
-    # 是否为偏置数组（用于混合网格）
-    isoffset    =   isa(geosInfo, OffsetVector)
-    geoInterval =   begin
-        isoffset ? begin
-            st  =   (eachindex(geosInfo).offset) + 1
-            st:(st - 1 + ngoeV)
-        end : begin
-            1:ngoeV
-        end
-    end
+    # 几何信息索引区间
+    geoInterval =   getGeosInterval(geosInfo)
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # 线程锁防止对同一数据写入出错
