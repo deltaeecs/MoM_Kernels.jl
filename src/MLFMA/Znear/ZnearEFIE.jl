@@ -183,17 +183,8 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
     cubesIndices    =   eachindex(cubes)
     # 常数
     Rsglr   =   Params.Rsglr
-    # 是否为偏置数组（用于混合网格）
-    ntetra      =   length(tetrasInfo)
-    isoffset    =   isa(tetrasInfo, OffsetVector)
-    geoInterval =   begin
-        isoffset ? begin
-            st  =   (eachindex(tetrasInfo).offset) + 1
-            st:(st - 1 + ntetra)
-        end : begin
-            1:ntetra
-        end
-    end
+    # 几何信息索引区间
+    geoInterval =   getGeosInterval(tetrasInfo)
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # Progress Meter
@@ -395,7 +386,7 @@ end
 采用 PWC 基函数计算四面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}},
-                        ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:ConstBasisFunction}
+    ZnearCSC::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:ConstBasisFunction}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -403,20 +394,12 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
     cubesIndices    =   eachindex(cubes)
     # 常数
     Rsglr   =   Params.Rsglr
-    # 是否为偏置数组
-    ntetra      =   length(tetrasInfo)
-    isoffset    =   isa(tetrasInfo, OffsetVector)
-    geoInterval =   begin
-        isoffset ? begin
-            st  =   (eachindex(tetrasInfo).offset) + 1
-            st:(st - 1 + ntetra)
-        end : begin
-            1:ntetra
-        end
-    end
+    # 几何信息索引区间
+    geoInterval =   getGeosInterval(tetrasInfo)
 
-    # 判断体电流的离散方式
-    discreteJ::Bool =   SimulationParams.discreteVar === "J"
+    # 判断体电流的离散方式，
+    discreteJ::Bool = discreteVar == "J"
+
     # 叶层盒子数量
     nCubes      =   cubesIndices.stop
     # Progress Meter
@@ -721,7 +704,6 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
     # 常数
     Rsglr   =   Params.Rsglr
     # 几何信息索引区间
-    isoffset    =   isa(hexasInfo, OffsetVector)
     geoInterval =   getGeosInterval(hexasInfo)
     # 叶层盒子数量
     nCubes      =   cubesIndices.stop
@@ -791,9 +773,7 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
             
             # 局域的场六面体
             tid     =   nearCubesHexaID[iHexa]
-            isoffset && begin
-                !(tid in geoInterval) && continue
-            end
+            !(tid in geoInterval) && continue
             hexat  =   hexasInfo[tid]
             # 测试六面体包含的六个测试基函数是否在所有邻盒子（测试盒子）的基函数（测试基函数）区间内
             msInInterval    =   [!isempty(searchsorted(nearCubeBFindices, m)) for m in hexat.inBfsID]
@@ -803,9 +783,7 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
             for jHexa in 1:length(cubeHexaID)
                 # 源六面体 id
                 sid =   cubeHexaID[jHexa]
-                isoffset && begin
-                    !(sid in geoInterval) && continue
-                end
+                !(sid in geoInterval) && continue
                 # 场六面体所在的盒子为本盒子时，在 场六面体id 小于 源六面体 id时， 跳过，避免重复计算
                 tid > sid && continue
                 # 源六面体
@@ -879,7 +857,7 @@ end
 采用 PWC 基函数计算六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}},
-                        ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:ConstBasisFunction}
+    ZnearCSC::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:ConstBasisFunction}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -887,8 +865,8 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
     cubesIndices    =   eachindex(cubes)
     # 常数
     Rsglr       =   Params.Rsglr
-    # 判断体电流的离散方式
-    discreteJ::Bool = SimulationParams.discreteVar == "J"
+    # 判断体电流的离散方式，
+    discreteJ::Bool = discreteVar == "J"
     # 几何信息索引区间
     geoInterval =   getGeosInterval(hexasInfo)
     # 叶层盒子数量
@@ -1029,14 +1007,14 @@ end
 采用 PWC + PWC 基函数计算 四面体 + 六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(  level, geos1Info::AbstractVector{VT1}, geos2Info::AbstractVector{VT2},
-                            ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {FT<:Real, CT<:Complex{FT}, 
-                            VT1<:TetrahedraInfo, VT2<:HexahedraInfo, BFT<:PWC}
+    ZnearCSC::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {FT<:Real, CT<:Complex{FT}, 
+    VT1<:TetrahedraInfo, VT2<:HexahedraInfo, BFT<:PWC}
 
     # 两中网格的索引区间
     geos1Interval   =   eachindex(geos1Info)
-    geos2Interval   =   eachindex(geos2Info)
-    # 离散的是否为电流
-    discreteJ::Bool =   (SimulationParams.discreteVar === "J")
+    # geos2Interval   =   eachindex(geos2Info)
+    # 判断体电流的离散方式，
+    discreteJ::Bool = discreteVar == "J"
 
     # 本层盒子信息
     cubes   =   level.cubes

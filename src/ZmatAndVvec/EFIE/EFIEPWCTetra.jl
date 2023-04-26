@@ -233,15 +233,8 @@ function impedancemat4VIE!(Zmat::Matrix{CT}, tetrasInfo::AbstractVector{Tetrahed
     
     # 四面体数
     tetrasnum    =   length(tetrasInfo)
-    isoffset    =   isa(tetrasInfo, OffsetVector)
-    geoInterval = begin 
-        isoffset ? begin
-            st  =   (eachindex(tetrasInfo).offset) + 1
-            st:(st - 1 + tetrasnum)
-        end : begin
-            1:tetrasnum
-        end
-    end
+    # 几何信息索引区间
+    geoInterval =   getGeosInterval(tetrasInfo)
     # 判断体电流的离散方式，
     discreteJ::Bool = discreteVar == "J"
 
