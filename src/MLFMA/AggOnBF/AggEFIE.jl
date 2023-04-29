@@ -255,11 +255,11 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{Tet
                     end # gi 
                     # 将结果写入目标数组
                     if  discreteJ
-                        aggSBF[iPole, 1, n]     += aggSθ
-                        aggSBF[iPole, 2, n]     += aggSϕ
+                        aggSBF[iPole, 1, n] += aggSθ
+                        aggSBF[iPole, 2, n] += aggSϕ
                     else
-                        aggSBF[iPole, 1, n]     += κₜ*aggSθ
-                        aggSBF[iPole, 2, n]     += κₜ*aggSϕ
+                        aggSBF[iPole, 1, n] += κₜ*aggSθ
+                        aggSBF[iPole, 2, n] += κₜ*aggSϕ
                     end
                     disaggSBF[iPole, 1, n]  += conj(aggSθ)
                     disaggSBF[iPole, 2, n]  += conj(aggSϕ)

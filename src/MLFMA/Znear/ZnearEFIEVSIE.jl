@@ -16,16 +16,9 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
     # 常数
     Rsglr   =   Params.Rsglr
     # 是否为偏置数组（用于混合网格）
-    ntetra      =   length(tetrasInfo)
-    isoffset    =   isa(tetrasInfo, OffsetVector)
-    geoInterval =   begin
-        isoffset ? begin
-            st  =   (eachindex(tetrasInfo).offset) + 1
-            st:(st - 1 + ntetra)
-        end : begin
-            1:ntetra
-        end
-    end
+    ntetra      =   length(tetras)
+    # 几何信息索引区间
+    geoInterval =   getGeosInterval(tetras)
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # Progress Meter
@@ -49,8 +42,6 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
         nNearCubeCal    =   0
         @inbounds for j in eachindex(cube.neighbors)
             jNearCube   =   cube.neighbors[j]
-            # 由矩阵对称性可跳过编号较小的盒子
-            jNearCube >  iCube && continue
             nNearCubeCal += 1
             # 邻盒子
             nearCube    =   cubes[jNearCube]
@@ -75,8 +66,6 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
         nNearCubeGeoPtr =   1
         @inbounds for j in eachindex(cube.neighbors)
             jNearCube   =   cube.neighbors[j]
-            # 由矩阵对称性可跳过编号较小的盒子
-            jNearCube >  iCube && continue
             # 邻盒子
             nearCube    =   cubes[jNearCube]
             # 写入邻四面体
@@ -313,11 +302,10 @@ end
 采用 RWG + PWC 基函数计算 三角形 + 四面体/六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::AbstractVector{VT},
-                            ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, VT<:VolumeCellType, BFT<:PWC}
+    ZnearCSC::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, VT<:VolumeCellType, BFT<:PWC}
     
-    # 三角形、四面体数
+    # 三角形数
     ntri    =   length(tris)
-    ngoeV  =   length(geosInfo)
 
     # 本层盒子信息
     cubes   =   level.cubes
@@ -325,24 +313,19 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
     cubesIndices    =   eachindex(cubes)
     # 常数
     Rsglr   =   Params.Rsglr
-    # 是否为偏置数组（用于混合网格）
-    isoffset    =   isa(geosInfo, OffsetVector)
-    geoInterval =   begin
-        isoffset ? begin
-            st  =   (eachindex(geosInfo).offset) + 1
-            st:(st - 1 + ngoeV)
-        end : begin
-            1:ngoeV
-        end
-    end
+    # 几何信息索引区间
+    geoInterval =   getGeosInterval(geosInfo)
+    # 判断体电流的离散方式，
+    discreteJ::Bool = discreteVar == "J"
+
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # 线程锁防止对同一数据写入出错
     lockZ   =   SpinLock()
     # Progress Meter
     pmeter  =   Progress(nCubes; desc = "Calculating Znear (RWG + PWC)...", dt = 1)
-    # 对盒子循环计算
-    @threads for iCube in 1:nCubes
+    # 对盒子循环计算@threads
+     for iCube in 1:nCubes
         next!(pmeter)
         # 盒子
         cube    =   cubes[iCube]

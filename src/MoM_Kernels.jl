@@ -13,6 +13,7 @@ using IncompleteLU, IterativeSolvers, LinearMaps
 using UnicodePlots, Printf
 
 export  inputParameters,
+        set_Interpolation_Method!,
         getOctreeAndReOrderBFs!,
         calZnearCSC, getImpedanceMatrix,
         getExcitationVector, getImpedanceMatAndExciteV,

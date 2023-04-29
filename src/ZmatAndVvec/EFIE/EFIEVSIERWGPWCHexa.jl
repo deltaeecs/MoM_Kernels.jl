@@ -173,7 +173,7 @@ end
 RWG + PWC 部分的阻抗矩阵
 """
 function impedancemat4RWGPWC!(Zmat::Matrix{CT}, trisInfo::AbstractVector{TriangleInfo{IT, FT}},
-    geosInfo::AbstractVector{HexahedraInfo{IT, FT, CT}}) where {IT<:Integer, FT<:AbstractFloat, CT<:Complex{FT}}
+    geosInfo::AbstractVector{HexahedraInfo{IT, FT, CT}}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:AbstractFloat, CT<:Complex{FT}}
     # 常数
     Rsglr   =   Params.Rsglr
     # 网格元（几何体）数

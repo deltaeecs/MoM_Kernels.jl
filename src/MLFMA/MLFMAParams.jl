@@ -6,25 +6,49 @@
 """
 创建可变参数类型以在频率更改时对应更改 MLFMA 的相关参数
 """
-mutable struct MLFMAParamsType{FT<:AbstractFloat}
-    LEAFCUBESIZE ::FT
+Base.@kwdef mutable struct MLFMAParamsType{FT<:AbstractFloat}
+    NBDIGITS::Int = 3# MLFMA精度
+    LEAFCUBESIZE ::FT = 0.23*Params.λ_0
+    InterpolationMethod::Symbol = :Lagrange2Step
 end
 
-const MLFMAParams   =   MLFMAParamsType{typeof(Params.frequency)}(0.23*Params.λ_0)
+"""
+多层快速多极子的可调参数
+"""
+const MLFMAParams   =   MLFMAParamsType{typeof(Params.frequency)}(LEAFCUBESIZE = 0.23*Params.λ_0)
 
-function modiMLFMAParams!(λ_0::FT) where {FT<:AbstractFloat}
-    MLFMAParams.LEAFCUBESIZE = 0.23*λ_0
+"""
+设置叶层盒子边长
+"""
+function set_leafCubeSize!(cubel::FT = 0.25Params.λ_0) where {FT<:AbstractFloat}
+    MLFMAParams.LEAFCUBESIZE = cubel
 end
 
-# ## 严格使用此长度（:strict）还是根据目标自适应（：recomend能适当修改叶层边长使得层数更合适 ）？
-# const LEAFCUBESIZEMODE  =   :recomend
-# MLFMA精度
-const NBDIGITS      =   IntDtype(3)
-
+"""
+获取叶层盒子边长
+"""
+function get_leafCubeSize()
+    MLFMAParams.LEAFCUBESIZE
+end
 
 """
-拉格朗日局部插值每个方向上的插值点个数, 要设置为偶数
+设置插值算法
 """
-const NLocalInterpolation = 6
-(isodd(NLocalInterpolation) | NLocalInterpolation <= 0) && throw(ArgumentError("NLocalInterpolation 局部插值点数应为偶数"))
+function set_Interpolation_Method!(method)
+    MLFMAParams.InterpolationMethod = method
+    nothing
+end
 
+"""
+获取插值算法
+"""
+get_Interpolation_Method(method::Symbol) = get_Interpolation_Method(Val(method))
+function get_Interpolation_Method(method::Union{Val{:Lagrange2Step}, Val{:Lagrange1Step}})
+    if method == Val(:Lagrange2Step)
+        return LagrangeInterpInfo
+    elseif method == Val(:Lagrange1Step)
+        return LagrangeInterp1StepInfo
+    else
+        throw("插值方法选择出错")
+    end
+end

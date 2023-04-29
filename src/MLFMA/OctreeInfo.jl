@@ -20,17 +20,18 @@ end
 """
 构建八叉树类
 """
-function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT) where{FT<:Real, LT<:AbstractLevel}
+function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT; nInterp = 6) where{FT<:Real, LT<:AbstractLevel}
     
     println("构造八叉树中...")
     
     # 构建将叶点完全覆盖的“大盒子”, 其中leafCubeEdgelUsed为计算出的实际使用的叶层盒子边长
+    set_leafCubeSize!(leafCubeEdgel)
     nLevels, bigCubeLowerCoor,  leafCubeEdgelUsed  =   setBigCube(leafnodes, leafCubeEdgel)
     nLevels <= 2 && error("层数过少，检查参数！")
 
     # 创建叶层
-    leafLevel       =   LT{Int, FT}()
-    leafsIDSorted   =   setLevelInfo!(leafLevel, nLevels, leafnodes, leafCubeEdgelUsed, bigCubeLowerCoor)
+    # leafLevel       =   LT{Int, FT, IPT{Int, FT}}()
+    leafLevel, leafsIDSorted   =   setLevelInfo!(nLevels, leafnodes, leafCubeEdgelUsed, bigCubeLowerCoor; LT = LT)
 
     # 将叶层写入字典
     levels  =   Dict{Int, LT}(nLevels => leafLevel)
@@ -43,8 +44,10 @@ function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT) where{FT<:
         # ilevel的盒子边长
         ilevelCubeEdgel =   leafCubeEdgelUsed*(2^(nLevels - ilevel))
         # 创建父层，同时输出子层盒子排序后的新id
-        levels[ilevel]  =   LT{Int, FT}()
-        levelsCubeIDSorted[ilevel + 1]  =   setLevelInfo!(levels[ilevel], ilevel, levels[ilevel + 1], ilevelCubeEdgel, bigCubeLowerCoor)
+        # levels[ilevel]  =   LT{Int, FT, IPT{Int, FT}}()
+        level, levelIDSorted = setLevelInfo!(ilevel, levels[ilevel + 1], ilevelCubeEdgel, bigCubeLowerCoor; LT = LT)
+        levels[ilevel] = level 
+        levelsCubeIDSorted[ilevel + 1]  =   levelIDSorted
     end
 
     # 从顶层向叶层， 根据排序后的新id重新排列子层盒子，以将同一个父盒子层的盒子相邻排列，这样有利于计算
@@ -61,10 +64,8 @@ function OctreeInfo{FT, LT}(leafnodes::Matrix{FT}, leafCubeEdgel::FT) where{FT<:
 
     println("预计算采样点、插值矩阵、相移因子、转移因子等信息中...")
     # 计算插值信息
-    # 插值点数
-    nLocalInterp::Int    =   NLocalInterpolation
     for ilevel in nLevels:-1:2
-        levels[ilevel].interpWθϕ    =   interpolationCSCMatCal(levels[ilevel-1].poles, levels[ilevel].poles, nLocalInterp)
+        levels[ilevel].interpWθϕ    =   interpolationCSCMatCal(levels[ilevel-1].poles, levels[ilevel].poles, nInterp)
     end
 
     # 预计算层间盒子的相移因子
