@@ -4,6 +4,7 @@
 """
 function inputParameters(;args...)
     inputBasicParameters(;args...)
+    set_leafCubeSize!()
     modiSingularityRelatedConsts!()
     return nothing
 end
