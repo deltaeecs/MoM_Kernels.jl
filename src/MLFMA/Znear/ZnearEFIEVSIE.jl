@@ -171,7 +171,7 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, hexasInfo::
     # 线程锁防止对同一数据写入出错
     lockZ   =   SpinLock()
     # Progress Meter
-    Progress(nCubes; desc = "Calculating Znear (RWG + RBF)...", dt = 1)
+    pmeter = Progress(nCubes; desc = "Calculating Znear (RWG + RBF)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         # 盒子
@@ -324,8 +324,8 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
     lockZ   =   SpinLock()
     # Progress Meter
     pmeter  =   Progress(nCubes; desc = "Calculating Znear (RWG + PWC)...", dt = 1)
-    # 对盒子循环计算@threads
-     for iCube in 1:nCubes
+    # 对盒子循环计算
+    @threads for iCube in 1:nCubes
         next!(pmeter)
         # 盒子
         cube    =   cubes[iCube]
