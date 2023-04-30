@@ -44,7 +44,7 @@ end
 """
 三角形面网格直接设置为的叶层盒子边长
 """
-function getLeafCubeL(geosInfo::Vector{T}) where {T<:TriangleInfo}
+function getLeafCubeL(geosInfo::AbstractVector{T}) where {T<:TriangleInfo}
     FT = Precision.FT
     re::FT = MLFMAParams.LEAFCUBESIZE
     re
@@ -53,7 +53,7 @@ end
 """
 四面体从网格平均尺寸设置整体的叶层盒子边长
 """
-function getLeafCubeL(geosInfo::Vector{T}) where {T<:TetrahedraInfo}
+function getLeafCubeL(geosInfo::AbstractVector{T}) where {T<:TetrahedraInfo}
     FT = Precision.FT
     re::FT = 7mean(x -> mean(f -> mean(f.edgel), x.faces), geosInfo)/4
     re
