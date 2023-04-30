@@ -122,7 +122,7 @@ function EFIEOnNearRWGPWC(trit::TriangleInfo{IT, FT}, geos::VT) where {IT<: Inte
     # 储存并矢结果的临时数组
     dyadG   =   zero(MMatrix{3, 3, CT})
     # 对源求积点循环
-    @inbounds for gi in 1:GQPNTrisglr
+    @inbounds for gi in 1:GQPNTriSglr
         # 源高斯求积点
         rgi  =      view(rgt, :, gi)
         # 计算 L 算子并矢并乘以权重
