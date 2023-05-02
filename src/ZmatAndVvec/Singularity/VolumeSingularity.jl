@@ -1,11 +1,17 @@
+@doc raw"""
+    volumeSingularityIgIvecg(rtveclc::AbstractVector{FT}, volumeCell::TetrahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
+    volumeSingularityIgIvecg(rtveclc::AbstractVector{FT}, volumeCell::HexahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
 
-"""
-体区域上的近奇异性
-volumeCell::TetrahedraInfo{FT}, 求积区域四面体体元
-rtveclc     ::Vec3D{FT}， 场点
-计算得到结果为::
-IgV     =   ∫ g(R) dV'      =  -∑ₛᵢ (dᵢ ∑ₙ₌₀(coeffgreen(n)/(n+2)*ISᵣ[n-1]))
-IvecgS  =   ∫ Rvec g(R) dS' =  -∑ₛᵢ n̂ᵢ ∑ₙ₌₀(coeffgreen(n)/(n+1)*ISᵣ[n+1])
+计算场点`rgt`在体网格`volumeCell`上的奇异性。
+计算结果为：
+```math
+\begin{aligned}
+I_{gV}  &= \int{g(R)dV'}\\
+        &= -\sum_{S_i}{d_i\sum_{n}^{SglrOrder}{\frac{coeffgreen(n)}{n+2}I_{RS}^{n-1}}}\\
+\boldsymbol{I}_{gV}  &= \int{\boldsymbol{R}g(R)dV'}\\
+        &= -\sum_{S_i}{\hat{\bm{n}}_i \sum_{n=0}^{SglrOrder}{\frac{coeffgreen(n)}{n+1}I^{n+1}_{RS}}}\\
+\end{aligned}
+```
 """
 function volumeSingularityIgIvecg(rtveclc::AbstractVector{FT}, volumeCell::TetrahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
     # 体元的面
@@ -148,153 +154,6 @@ function volumeSingularityIgIvecg(rtveclc::AbstractVector{FT}, volumeCell::Tetra
     return IVg, IvecVg
 
 end
-
-"""
-体区域上的近奇异性
-volumeCell  ::HexahedraInfo, 求积区域六面体体元
-rtveclc     ::Vec3D{FT}， 场点
-计算得到结果为::
-IgV     =   ∫ g(R) dV'      =  -∑ₛᵢ (dᵢ ∑ₙ₌₀(coeffgreen(n)/(n+2)*ISᵣ[n-1]))
-"""
-function volumeSingularityIg(rtveclc::AbstractVector{FT}, volumeCell::HexahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
-    # 体元的面
-    faces   =   volumeCell.faces
-    # 体元的面数
-    nFaces  =   length(faces)
-    # 预分配 Iᵣⁿ、 ISᵣ 数组
-    ISᵣ     =   OffsetArray(zero(MVector{SglrOrder, FT}), -2)
-    Ilᵣ     =   OffsetArray(zero(MVector{SglrOrder, FT}), -2)
-    # 结果
-    IVg     =   zero(CT)
-
-    # 预分配临时变量以加速
-    p02ivec         =   zero(MVec3D{FT})
-    r0  =   zero(MVec3D{FT})
-    
-    # 对高斯求积点循环
-    for iface in 1:nFaces
-        # 第 iface 个面
-        face    =   faces[iface]
-        # 置零
-        ISᵣ .=  0
-        # 该积分点在到源三角形上的距离（带正负，以源三角形法向为正向）
-        dts  =   zero(FT)
-        for ii in 1:3
-            dts += volumeCell.facesn̂[ii, iface] * (rtveclc[ii] - face.vertices[ii, 1])
-        end
-        # 投影点
-        # @views r0   =   rtveclc .- dts .* volumeCell.facesn̂[:, iface]
-        for ii in 1:3
-            r0[ii]   =   rtveclc[ii] .- dts .* volumeCell.facesn̂[ii, iface]
-        end
-        
-        # 距离的绝对值、平方
-        dts²    =   dts*dts
-        dtsAbs  =   abs(dts)
-        
-        # 边的信息
-        edgel   =   face.edgel
-        edgev̂   =   face.edgev̂
-        edgen̂   =   face.edgen̂
-        # 边数
-        nEdge   =   length(edgel)
-        # 对 nEdge 个边循环
-        for edgei in 1:nEdge
-            # 置零避免累加错误
-            Ilᵣ .=  0
-            # 构成该边的第一个点
-            edgeNodei⁻  =   view(face.vertices, :, edgei)
-            # 该边边长
-            lj      =   edgel[edgei]
-            # 每个边的局部坐标下的 ljⱼ⁺ \lⱼ⁻
-            lⱼ⁻  =   zero(FT)
-            for ii in 1:3
-                lⱼ⁻ += (edgeNodei⁻[ii] - r0[ii]) * edgev̂[ii, edgei]
-            end
-            lⱼ⁺ =   lⱼ⁻ + lj
-            # 投影点 r0 到各个边的垂足的向量 p02ivec
-            for ii in 1:3
-                p02ivec[ii] = edgeNodei⁻[ii] - lⱼ⁻ * edgev̂[ii, edgei] - r0[ii]
-            end
-            # 该向量长的平方、该向量长
-            @views p02jl   =   p02ivec ⋅ edgen̂[:, edgei]
-            p02jl²  =   abs2(p02jl)
-            # 将p02ivec化为单位向量
-            p02ivec ./=   p02jl
-            # 场点到在该边上投影点的距离
-            R0²     =   p02jl² + dts²
-            # 场点到在该边上正、负端点的距离
-            R⁺      =   sqrt(abs2(lⱼ⁺) + R0²)
-            R⁻      =   sqrt(abs2(lⱼ⁻) + R0²)
-            
-            # 此处为避免数值误差，将阈值 ϵl 设定为 1e-2 边长
-            let fⱼ = zero(FT), βⱼ =  zero(FT), ϵl = 1e-3lj
-                if abs(p02jl) < ϵl
-                    # 投影点过于靠近该边即 p02jl = 0 时， βⱼ = 0
-                    if dtsAbs < ϵl
-                        # 视为积分点与边重合，此时 βⱼ = 0， Kᵣ不变
-                        continue
-                    else
-                        # 视为投影点与边重合，此时 βⱼ = 0， Kᵣ不变
-                        fⱼ      =   log((lⱼ⁺ + R⁺)/(lⱼ⁻ + R⁻))
-                    end
-                else
-                    fⱼ      =   log((lⱼ⁺ + R⁺)/(lⱼ⁻ + R⁻))
-                    if dtsAbs < ϵl
-                        # 视为积分点与源三角形面重合，此时 βⱼ ≠ 0
-                        βⱼ      =   atan((p02jl*lⱼ⁺)/R0²) - atan((p02jl*lⱼ⁻)/R0²)
-                        # ISᵣ累加
-                        ISᵣ[-1] +=   p02jl*fⱼ
-                    else
-                        # 正常处理
-                        βⱼ      =   atan((p02jl*lⱼ⁺)/(R0² + dtsAbs*R⁺)) - atan((p02jl*lⱼ⁻)/(R0² + dtsAbs*R⁻))
-                        # ISᵣ累加
-                        ISᵣ[-1] +=   p02jl*fⱼ - dtsAbs*βⱼ
-                    end
-                end #if p02jl
-                # 计算 Ilᵣ 所有项
-                Ilᵣ[-1]  =   fⱼ
-                Ilᵣ[0]   =   lj
-                R⁺ⁿ =   one(FT)
-                R⁻ⁿ =   one(FT) 
-                for n in 1:(SglrOrder-2)
-                    R⁺ⁿ    *=   R⁺
-                    R⁻ⁿ    *=   R⁻
-                    Ilᵣ[n]  =   (lⱼ⁺*R⁺ⁿ - lⱼ⁻*R⁻ⁿ  + n*R0²*Ilᵣ[n-2])/(n+1)
-                end # n
-                # 计算 ISᵣ 中与边相关的项
-                for n in 1:(SglrOrder-2)
-                    ISᵣ[n]  +=   p02jl * Ilᵣ[n]
-                end # n
-            end #let
-        end # edgei
-        # 其它 ISᵣ 相关项
-        ISᵣ[0]   =   abs(volumeCell.facesArea[iface])
-        for n in 1:(SglrOrder-2)
-            ISᵣ[n]  +=  n*dts²*ISᵣ[n-2]
-            ISᵣ[n]  /=  n + 2
-        end
-        # 累加 IVg 结果
-        ISg      =   zero(CT)
-        for n in 0:(SglrOrder-1)
-            ISg -=  SSCgdivnp2[n]*ISᵣ[n-1]
-        end
-        IVg     +=  dts*ISg
-
-    end # iface
-
-    return IVg
-
-end
-
-"""
-体区域上的近奇异性
-volumeCell  ::HexahedraInfo, 求积区域六面体体元
-rtveclc     ::Vec3D{FT}， 场点
-计算得到结果为::
-IgV     =   ∫ g(R) dV'      =  -∑ₛᵢ (dᵢ ∑ₙ₌₀(coeffgreen(n)/(n+2)*ISᵣ[n-1]))
-IvecgS  =   ∫ Rvec g(R) dS' =  -∑ₛᵢ n̂ᵢ ∑ₙ₌₀(coeffgreen(n)/(n+1)*ISᵣ[n+1])
-"""
 function volumeSingularityIgIvecg(rtveclc::AbstractVector{FT}, volumeCell::HexahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
     # 体元的面
     faces   =   volumeCell.faces
@@ -437,15 +296,160 @@ function volumeSingularityIgIvecg(rtveclc::AbstractVector{FT}, volumeCell::Hexah
 
 end
 
+@doc raw"""
+    volumeSingularityIg(rtveclc::AbstractVector{FT}, volumeCell::HexahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
 
+计算场点`rgt`在体网格`volumeCell`上的奇异性。
+计算结果为：
+```math
+\begin{aligned}
+I_{gV}  &= \int{g(R)dV'}\\
+        &= -\sum_{S_i}{d_i\sum_{n}^{SglrOrder}{\frac{coeffgreen(n)}{n+2}I_{RS}^{n-1}}}\\
+\end{aligned}
+```
 """
-体区域上的近奇异性（计算得到并矢）
-volumeCell::VolumeCell{FT}, 求积区域体元
-rtveclc     ::Vec3D{FT}， 场点
-计算得到结果为并矢::
-∫∫ (k²I + ∇∇)G(R) dV'dV
-ISᵣ  =   ∫ Rⁿ dV'
-K̂ᵣⁿ  =   ∫ R̂Rⁿ dV'
+function volumeSingularityIg(rtveclc::AbstractVector{FT}, volumeCell::HexahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
+    # 体元的面
+    faces   =   volumeCell.faces
+    # 体元的面数
+    nFaces  =   length(faces)
+    # 预分配 Iᵣⁿ、 ISᵣ 数组
+    ISᵣ     =   OffsetArray(zero(MVector{SglrOrder, FT}), -2)
+    Ilᵣ     =   OffsetArray(zero(MVector{SglrOrder, FT}), -2)
+    # 结果
+    IVg     =   zero(CT)
+
+    # 预分配临时变量以加速
+    p02ivec         =   zero(MVec3D{FT})
+    r0  =   zero(MVec3D{FT})
+    
+    # 对高斯求积点循环
+    for iface in 1:nFaces
+        # 第 iface 个面
+        face    =   faces[iface]
+        # 置零
+        ISᵣ .=  0
+        # 该积分点在到源三角形上的距离（带正负，以源三角形法向为正向）
+        dts  =   zero(FT)
+        for ii in 1:3
+            dts += volumeCell.facesn̂[ii, iface] * (rtveclc[ii] - face.vertices[ii, 1])
+        end
+        # 投影点
+        # @views r0   =   rtveclc .- dts .* volumeCell.facesn̂[:, iface]
+        for ii in 1:3
+            r0[ii]   =   rtveclc[ii] .- dts .* volumeCell.facesn̂[ii, iface]
+        end
+        
+        # 距离的绝对值、平方
+        dts²    =   dts*dts
+        dtsAbs  =   abs(dts)
+        
+        # 边的信息
+        edgel   =   face.edgel
+        edgev̂   =   face.edgev̂
+        edgen̂   =   face.edgen̂
+        # 边数
+        nEdge   =   length(edgel)
+        # 对 nEdge 个边循环
+        for edgei in 1:nEdge
+            # 置零避免累加错误
+            Ilᵣ .=  0
+            # 构成该边的第一个点
+            edgeNodei⁻  =   view(face.vertices, :, edgei)
+            # 该边边长
+            lj      =   edgel[edgei]
+            # 每个边的局部坐标下的 ljⱼ⁺ \lⱼ⁻
+            lⱼ⁻  =   zero(FT)
+            for ii in 1:3
+                lⱼ⁻ += (edgeNodei⁻[ii] - r0[ii]) * edgev̂[ii, edgei]
+            end
+            lⱼ⁺ =   lⱼ⁻ + lj
+            # 投影点 r0 到各个边的垂足的向量 p02ivec
+            for ii in 1:3
+                p02ivec[ii] = edgeNodei⁻[ii] - lⱼ⁻ * edgev̂[ii, edgei] - r0[ii]
+            end
+            # 该向量长的平方、该向量长
+            @views p02jl   =   p02ivec ⋅ edgen̂[:, edgei]
+            p02jl²  =   abs2(p02jl)
+            # 将p02ivec化为单位向量
+            p02ivec ./=   p02jl
+            # 场点到在该边上投影点的距离
+            R0²     =   p02jl² + dts²
+            # 场点到在该边上正、负端点的距离
+            R⁺      =   sqrt(abs2(lⱼ⁺) + R0²)
+            R⁻      =   sqrt(abs2(lⱼ⁻) + R0²)
+            
+            # 此处为避免数值误差，将阈值 ϵl 设定为 1e-2 边长
+            let fⱼ = zero(FT), βⱼ =  zero(FT), ϵl = 1e-3lj
+                if abs(p02jl) < ϵl
+                    # 投影点过于靠近该边即 p02jl = 0 时， βⱼ = 0
+                    if dtsAbs < ϵl
+                        # 视为积分点与边重合，此时 βⱼ = 0， Kᵣ不变
+                        continue
+                    else
+                        # 视为投影点与边重合，此时 βⱼ = 0， Kᵣ不变
+                        fⱼ      =   log((lⱼ⁺ + R⁺)/(lⱼ⁻ + R⁻))
+                    end
+                else
+                    fⱼ      =   log((lⱼ⁺ + R⁺)/(lⱼ⁻ + R⁻))
+                    if dtsAbs < ϵl
+                        # 视为积分点与源三角形面重合，此时 βⱼ ≠ 0
+                        βⱼ      =   atan((p02jl*lⱼ⁺)/R0²) - atan((p02jl*lⱼ⁻)/R0²)
+                        # ISᵣ累加
+                        ISᵣ[-1] +=   p02jl*fⱼ
+                    else
+                        # 正常处理
+                        βⱼ      =   atan((p02jl*lⱼ⁺)/(R0² + dtsAbs*R⁺)) - atan((p02jl*lⱼ⁻)/(R0² + dtsAbs*R⁻))
+                        # ISᵣ累加
+                        ISᵣ[-1] +=   p02jl*fⱼ - dtsAbs*βⱼ
+                    end
+                end #if p02jl
+                # 计算 Ilᵣ 所有项
+                Ilᵣ[-1]  =   fⱼ
+                Ilᵣ[0]   =   lj
+                R⁺ⁿ =   one(FT)
+                R⁻ⁿ =   one(FT) 
+                for n in 1:(SglrOrder-2)
+                    R⁺ⁿ    *=   R⁺
+                    R⁻ⁿ    *=   R⁻
+                    Ilᵣ[n]  =   (lⱼ⁺*R⁺ⁿ - lⱼ⁻*R⁻ⁿ  + n*R0²*Ilᵣ[n-2])/(n+1)
+                end # n
+                # 计算 ISᵣ 中与边相关的项
+                for n in 1:(SglrOrder-2)
+                    ISᵣ[n]  +=   p02jl * Ilᵣ[n]
+                end # n
+            end #let
+        end # edgei
+        # 其它 ISᵣ 相关项
+        ISᵣ[0]   =   abs(volumeCell.facesArea[iface])
+        for n in 1:(SglrOrder-2)
+            ISᵣ[n]  +=  n*dts²*ISᵣ[n-2]
+            ISᵣ[n]  /=  n + 2
+        end
+        # 累加 IVg 结果
+        ISg      =   zero(CT)
+        for n in 0:(SglrOrder-1)
+            ISg -=  SSCgdivnp2[n]*ISᵣ[n-1]
+        end
+        IVg     +=  dts*ISg
+
+    end # iface
+
+    return IVg
+
+end
+
+@doc raw"""
+    volumeSingularityLOpDyad(rtveclc::AbstractVector{FT}, volumeCell::TetrahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
+    volumeSingularityLOpDyad(rtveclc::AbstractVector{FT}, volumeCell::HexahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
+    
+计算场点`rtveclc`在体网格`volumeCell`上的并矢格林函数奇异性。
+计算结果为：
+```math
+\begin{aligned}
+\overline{I}_{V}  &= \int{(k^2 I + ∇∇)G(R) dV'}
+\end{aligned}
+```
 """
 function volumeSingularityLOpDyad(rtveclc::AbstractVector{FT}, volumeCell::TetrahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
     # 体元的面
@@ -606,16 +610,6 @@ function volumeSingularityLOpDyad(rtveclc::AbstractVector{FT}, volumeCell::Tetra
     return re
 
 end
-
-"""
-体区域上的近奇异性（计算得到并矢）
-volumeCell::VolumeCell{FT}, 求积区域体元
-rtveclc     ::Vec3D{FT}， 场点
-计算得到结果为并矢::
-∫∫ (k²I + ∇∇)G(R) dV'dV
-ISᵣ  =   ∫ Rⁿ dV'
-K̂ᵣⁿ  =   ∫ R̂Rⁿ dV'
-"""
 function volumeSingularityLOpDyad(rtveclc::AbstractVector{FT}, volumeCell::HexahedraInfo{IT, FT, CT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}}
     # 体元的面
     faces   =   volumeCell.faces

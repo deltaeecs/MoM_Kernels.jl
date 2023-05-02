@@ -34,7 +34,7 @@ setPrecision!(Float64)
         meshData, εᵣs   =  getMeshData(filename; meshUnit=:mm);
         @test true
 
-        @testset "PWC, SWG" for vbfT in [:SWG, :PWC]#, 
+        @testset "PWC, SWG" for vbfT in [:SWG, :PWC]
 
             ngeo, nbf, geosInfo, bfsInfo =  getBFsFromMeshData(meshData, vbfT = vbfT)
             @test true

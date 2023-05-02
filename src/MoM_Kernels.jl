@@ -53,4 +53,7 @@ include("PostProcess/PostProcessing.jl")
 # 扩展
 include("Extends.jl")
 
+# 废弃
+include("deprecate.jl")
+
 end
