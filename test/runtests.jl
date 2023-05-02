@@ -4,7 +4,7 @@ include("Matrix and Solving.jl")
 include("PostProcessing.jl")
 
 SimulationParams.SHOWIMAGE = true
-setPrecision!(Float64)
+setPrecision!(Float32)
 
 @testset "MoM_Kernels.jl" begin
 
