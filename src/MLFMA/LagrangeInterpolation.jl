@@ -116,7 +116,7 @@ function levelIntegralInfoCal(levelCubeEdgel::FT, ::Union{Val{:Lagrange2Step}, V
     
     # 将数据保存在 levelsPoles 中，按照 θ 方向连续的顺序，将所有采样点信息保存为一向量
     # 计算所有极子的信息
-    r̂sθsϕs =  [r̂θϕInfo{FT}(θ, ϕ) for ϕ in Xϕs for θ in Xθs]
+    r̂sθsϕs =  [r̂θϕInfo(θ, ϕ) for ϕ in Xϕs for θ in Xθs]
     # 所有采样点权重
     Wθϕs   =  [Wθ * Wϕ for Wϕ in Wϕs for Wθ in Wθs]
 
