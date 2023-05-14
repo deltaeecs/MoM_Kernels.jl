@@ -442,8 +442,8 @@ function faceSingularityIg(rgt::AbstractVector{FT}, polys::ST, area::FT,
 end
 
 @doc raw"""
-    faceSingularityIgIvecg(rgt::AbstractVector{FT}, polys::ST, area::FT, 
-    facen̂::AbstractVector{FT}) where {IT<:Integer, FT<:Real, ST<:SurfaceCellType{IT, FT}}
+    faceSingularityIgIvecg(rgt::AbstractVector{FT}, polys::ST, area, 
+        facen̂::AbstractVector) where {FT<:Real, ST<:SurfaceCellType{IT, FT}}
 
 计算场点`rgt`在多边形`polys`上的奇异性，`polys`的面积为`area`，外法向量为`facen̂`。
 计算结果为：
@@ -456,8 +456,8 @@ I_{gS}  &= \int{g(R)dS'}\\
 \end{aligned}
 ```
 """
-function faceSingularityIgIvecg(rgt::AbstractVector{FT}, polys::ST, area::FT, 
-    facen̂::AbstractVector{FT}) where {IT<:Integer, FT<:Real, ST<:SurfaceCellType{IT, FT}}
+function faceSingularityIgIvecg(rgt::AbstractVector{FT}, polys::ST, area, 
+    facen̂::AbstractVector) where {FT<:Real, ST<:SurfaceCellType}
 
     # 复数数据类型
     CT  =   Complex{FT}

@@ -219,7 +219,7 @@ function raditionalIntegralNCal(θs_obs, ϕs_obs, geosInfo::Vector{TriangleInfo{
     nobs        =   length(θs_obs) * length(ϕs_obs)
     θsobsInfo   =   [∠Info{FT}(θ_obs) for θ_obs in θs_obs]
     ϕsobsInfo   =   [∠Info{FT}(ϕ_obs) for ϕ_obs in ϕs_obs]
-    r̂θsϕs       =   [r̂θϕInfo{FT}(θobsInfo, ϕobsInfo) for θobsInfo in θsobsInfo, ϕobsInfo in ϕsobsInfo]
+    r̂θsϕs       =   [r̂θϕInfo(θobsInfo, ϕobsInfo) for θobsInfo in θsobsInfo, ϕobsInfo in ϕsobsInfo]
     
     # 预分配辐射积分内存
     Nθsϕs       =   zeros(CT, (2, length(θsobsInfo), length(ϕsobsInfo)))

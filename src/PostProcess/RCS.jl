@@ -21,7 +21,7 @@ function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT},
     nobs        =   Nθ_obs * Nϕ_obs
     θsobsInfo   =   [∠Info{FT}(θ_obs) for θ_obs in θs_obs]
     ϕsobsInfo   =   [∠Info{FT}(ϕ_obs) for ϕ_obs in ϕs_obs]
-    r̂θsϕs       =   [r̂θϕInfo{FT}(θobsInfo, ϕobsInfo) for θobsInfo in θsobsInfo, ϕobsInfo in ϕsobsInfo]
+    r̂θsϕs       =   [r̂θϕInfo(θobsInfo, ϕobsInfo) for θobsInfo in θsobsInfo, ϕobsInfo in ϕsobsInfo]
     
     # 预分配RCS内存
     RCSθsϕs     =   zeros(FT, (2, length(θsobsInfo), length(ϕsobsInfo)))
@@ -74,7 +74,7 @@ function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vecto
     nobs        =   length(θs_obs) * length(ϕs_obs)
     θsobsInfo   =   [∠Info{FT}(θ_obs) for θ_obs in θs_obs]
     ϕsobsInfo   =   [∠Info{FT}(ϕ_obs) for ϕ_obs in ϕs_obs]
-    r̂θsϕs       =   [r̂θϕInfo{FT}(θobsInfo, ϕobsInfo) for θobsInfo in θsobsInfo, ϕobsInfo in ϕsobsInfo]
+    r̂θsϕs       =   [r̂θϕInfo(θobsInfo, ϕobsInfo) for θobsInfo in θsobsInfo, ϕobsInfo in ϕsobsInfo]
     
     # 预分配RCS内存
     RCSθsϕs     =   zeros(FT, (2, length(θsobsInfo), length(ϕsobsInfo)))
@@ -133,7 +133,7 @@ function radarCrossSection(θs_obs, ϕs_obs,
     nobs        =   length(θs_obs) * length(ϕs_obs)
     θsobsInfo   =   [∠Info{FT}(θ_obs) for θ_obs in θs_obs]
     ϕsobsInfo   =   [∠Info{FT}(ϕ_obs) for ϕ_obs in ϕs_obs]
-    r̂θsϕs       =   [r̂θϕInfo{FT}(θobsInfo, ϕobsInfo) for θobsInfo in θsobsInfo, ϕobsInfo in ϕsobsInfo]
+    r̂θsϕs       =   [r̂θϕInfo(θobsInfo, ϕobsInfo) for θobsInfo in θsobsInfo, ϕobsInfo in ϕsobsInfo]
     
     # 预分配RCS内存
     RCSθsϕs     =   zeros(FT, (2, length(θsobsInfo), length(ϕsobsInfo)))
