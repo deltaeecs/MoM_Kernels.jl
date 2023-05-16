@@ -1,10 +1,13 @@
 using Primes
 
-"""
-slicedim2mpi(sz::Int, nc::Int)
+@doc """
+    slicedim2mpi(sz::Int, nc::Int)
+    slicedim2mpi(dims, nc::Int)
 
-从 MPIArray4MoMs借的！为的是避免提前引入 MPI 导致在集群上的 bug。
-TBW
+将区间 `1:sz` 划分为 `nc` 个区间。
+*从 [MPIArray4MoMs](https://github.com/deltaeecs/MPIArray4MoMs.jl) 借的！
+为的是避免提前引入 MPI 导致在集群上的 bug。因此该函数的修改必须与 
+[MPIArray4MoMs](https://github.com/deltaeecs/MPIArray4MoMs.jl) 同步。*
 """
 function slicedim2mpi(sz::Int, nc::Int)
     if sz >= nc
@@ -24,13 +27,6 @@ function slicedim2mpi(sz::Int, nc::Int)
         return [[1:(sz+1);]; zeros(Int, nc-sz)]
     end
 end
-
-"""
-slicedim2mpi(dims, nc::Int)
-
-从 MPIArray4MoMs借的！为的是避免提前引入 MPI 导致在集群上的 bug。
-TBW
-"""
 function slicedim2mpi(dims, nc::Int)
     dims = [dims...]
     chunks = ones(Int, length(dims))
@@ -58,23 +54,28 @@ function slicedim2mpi(dims, nc::Int)
 end
 
 
+@doc """
+    sizeChunks2cuts(Asize, chunks)
 
+将数组大小 `Asize` 按 `chunks` 进行分块。
+"""
 function sizeChunks2cuts(Asize, chunks)
     map(slicedim2mpi, Asize, chunks)
 end
-
 function sizeChunks2cuts(Asize, chunks::Int)
     map(slicedim2mpi, Asize, (chunks, ))
 end
-
 function sizeChunks2cuts(Asize::Int, chunks)
     map(slicedim2mpi, (Asize, ), chunks)
 end
-
 function sizeChunks2cuts(Asize::Int, chunks::Int)
     map(slicedim2mpi, (Asize, ), (chunks, ))
 end
 
+@doc """
+    sizeChunksCuts2indices(Asize, chunks, cuts::Tuple)
+
+"""
 function sizeChunksCuts2indices(Asize, chunks, cuts::Tuple)
     n = length(Asize)
     idxs = Array{NTuple{n,UnitRange{Int}}, n}(undef, chunks...)
@@ -88,7 +89,6 @@ function sizeChunksCuts2indices(Asize, chunks, cuts::Tuple)
 
     return idxs
 end
-
 function sizeChunksCuts2indices(Asize, chunks, cuts::Vector{I}) where{I<:Integer}
     n = length(Asize)
     idxs = Array{NTuple{n,UnitRange{Int}}, n}(undef, chunks...)

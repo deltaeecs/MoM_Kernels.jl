@@ -1,5 +1,8 @@
 """
-计算某层聚合项, 输入为三角形信息和 RWG 基函数信息
+    aggSBFOnLevelMFIE(level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
+    bfsInfo::Vector{RWG{IT, FT}}) where {IT<:Integer, FT<:Real}
+
+计算某层采用 MFIE 时在三角形上的 RWG 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevelMFIE(level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
     bfsInfo::Vector{RWG{IT, FT}}) where {IT<:Integer, FT<:Real}
@@ -21,9 +24,11 @@ function aggSBFOnLevelMFIE(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
 end
 
 using MoM_Basics:acrossbcrossc
-
 """
-计算某层聚合项, 输入为三角形信息和 RWG 基函数信息
+    aggSBFOnLevelMFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, BFT<:RWG}
+
+计算某层采用 MFIE 时在三角形上的 RWG 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevelMFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
     ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, BFT<:RWG}
@@ -128,4 +133,3 @@ function aggSBFOnLevelMFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{Tria
 
     return nothing
 end
-

@@ -1,5 +1,9 @@
 """
-计算某层聚合项, 输入为三角形信息和 RWG 基函数信息
+    aggSBFOnLevelCFIE(level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
+    bfsInfo) where {IT<:Integer, FT<:Real}
+
+计算某层采用 CFIE 时 RWG 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF` , 
+输入为层信息 `level` 、三角形信息 `trianglesInfo` 和基函数信息 `bfsInfo`。
 """
 function aggSBFOnLevelCFIE(level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
     bfsInfo) where {IT<:Integer, FT<:Real}
@@ -24,7 +28,10 @@ end
 
 
 """
-计算某层聚合项, 输入为三角形信息和 RWG 基函数信息
+    aggSBFOnLevelCFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, BFT<:RWG}
+
+计算某层采用 CFIE 时 RWG 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevelCFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
     ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, BFT<:RWG}

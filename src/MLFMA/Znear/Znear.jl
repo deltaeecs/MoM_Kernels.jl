@@ -3,11 +3,15 @@
 include("MatrixChunk.jl")
 include("ZnearChunks.jl")
 
-
+"""
+近场阻抗矩阵的类型集合。
+"""
 ZnearT{CT}  = Union{SparseMatrixCSC{CT, Int}, Transpose{CT, SparseMatrixCSC{CT, Int}}} where {CT}
 
 """
-根据八叉树层信息初始化近场矩阵元
+    initialZnearCSC(level, nbf::Int)
+
+根据八叉树层信息 `level` 初始化近场阻抗矩阵。
 """
 function initialZnearCSC(level, nbf::Int)
 
@@ -70,14 +74,14 @@ function initialZnearCSC(level, nbf::Int)
         end
 
     end # iCube
-
     
     return SparseMatrixCSC{Complex{FT}, Int}(nbf, nbf, colPtr, rowIndices, Znear)
 end
 
-
 """
-根据八叉树层信息初始化 CSR 压缩稀疏行 (用 transpose 实现) 近场矩阵元
+    initialZnearCSR(level, nbf::Int)
+
+根据八叉树层信息 `level` 初始化近场阻抗矩阵，用 `transpose` 实现 CSR 压缩稀疏行。
 """
 function initialZnearCSR(level, nbf::Int)
     FT  =   typeof(level.cubeEdgel)
@@ -145,13 +149,14 @@ function initialZnearCSR(level, nbf::Int)
 
     end # iCube
 
-    
     return transpose(SparseMatrixCSC{Complex{FT}, Int}(nbf, nbf, rowPtr, colIndices, Znear))
 end
 
 
 """
-根据八叉树盒子信息初始化 cube 对应的近场矩阵元块儿
+    initialZnearChunks(cube, cubes::AbstractVector; CT = Complex{Precision.FT})
+
+根据八叉树某个盒子 `cube` 信息初始化 `cube` 对应的近场矩阵元块。
 """
 function initialZnearChunks(cube, cubes::AbstractVector; CT = Complex{Precision.FT})
 
@@ -174,21 +179,22 @@ function initialZnearChunks(cube, cubes::AbstractVector; CT = Complex{Precision.
 end
 
 """
+    ZnearChunkMulIVec!(ZnearChunk, resultChunk, IVec)
+
 计算某一块的矩阵向量乘积
 """
 function ZnearChunkMulIVec!(ZnearChunk, resultChunk, IVec)
-
     copyto!(resultChunk, ZnearChunk * IVec)
-
     nothing
-
 end
 
 getNUnknown(v::AbstractVector) = length(v)
 getNUnknown(vs::AbstractVector{VT}) where {VT<:AbstractVector} = sum(length, vs)
 
 """
-给出参数计算矩阵近场元并保存在CSC矩阵中
+    calZnearCSC(level, geosInfo::Vector, bfsInfo::Vector)
+
+根据八叉树层信息 `level` 和几何信息 `geosInfo` 、基函数信息 `bfsInfo` 计算近场阻抗矩阵。
 """
 function calZnearCSC(level, geosInfo::Vector, 
     bfsInfo::Vector)
@@ -196,8 +202,8 @@ function calZnearCSC(level, geosInfo::Vector,
     println("计算矩阵近场元CSC格式稀疏矩阵中...")
     # 初始化CSC矩阵
     nbf         =   getNUnknown(bfsInfo)
-    ZnearCSC    =   begin
-        if nthreads() <= 4
+    Znear    =   begin
+        if !MLFMAParams.useCSR
             # 线程较小时，采用 CSC 格式不会有问题
             initialZnearCSC(level, nbf) 
         else
@@ -207,81 +213,78 @@ function calZnearCSC(level, geosInfo::Vector,
         end
     end
     @clock "计算近场矩阵" begin
-        calZnearCSC!(level, geosInfo, ZnearCSC)
+        calZnearCSC!(level, geosInfo, Znear)
     end
     
-    return ZnearCSC
+    return Znear
 end
 
-"""
-根据积分方程类型选择相应
+@doc """
+    calZnearCSC!(level, geosInfo::AbstractVector{VSCellT}, 
+        Znear, bfT::Type{BFT} = VSBFTypes.sbfType) where {BFT<:BasisFunctionType, VSCellT<:SurfaceCellType}
+    calZnearCSC!(level, geosInfo::AbstractVector{VSCellT}, 
+        Znear, bfT::Type{BFT} = VSBFTypes.vbfType) where {BFT<:BasisFunctionType, VSCellT<:VolumeCellType}
+    calZnearCSC!(level, geosInfo::AbstractVector{VT}, 
+        Znear) where {VT<:AbstractVector}
+
+根据八叉树层信息 `level` 和几何信息 `geosInfo` 、基函数信息 `bfsInfo` 计算近场阻抗矩阵。
 """
 function calZnearCSC!(level, geosInfo::AbstractVector{VSCellT}, 
-    ZnearCSC, bfT::Type{BFT} = VSBFTypes.sbfType) where {BFT<:BasisFunctionType, VSCellT<:SurfaceCellType}
+    Znear, bfT::Type{BFT} = VSBFTypes.sbfType) where {BFT<:BasisFunctionType, VSCellT<:SurfaceCellType}
     if SimulationParams.ieT == :EFIE
         # 计算 RWG下 的 EFIE 阻抗矩阵
-        calZnearCSCEFIE!(level, geosInfo, ZnearCSC, bfT)
+        calZnearCSCEFIE!(level, geosInfo, Znear, bfT)
     elseif SimulationParams.ieT == :MFIE
         # 计算 RWG下 的 MFIE 阻抗矩阵
-        calZnearCSCMFIE!(level, geosInfo, ZnearCSC, bfT)
+        calZnearCSCMFIE!(level, geosInfo, Znear, bfT)
     elseif SimulationParams.ieT == :CFIE
         # 计算 RWG下 的 CFIE 阻抗矩阵
-        calZnearCSCCFIE!(level, geosInfo, ZnearCSC, bfT)
+        calZnearCSCCFIE!(level, geosInfo, Znear, bfT)
     end
     return nothing
 end
-
 function calZnearCSC!(level, geosInfo::AbstractVector{VSCellT}, 
-    ZnearCSC, bfT::Type{BFT} = VSBFTypes.vbfType) where {BFT<:BasisFunctionType, VSCellT<:VolumeCellType}
+    Znear, bfT::Type{BFT} = VSBFTypes.vbfType) where {BFT<:BasisFunctionType, VSCellT<:VolumeCellType}
     # 计算 SWG/PWC/RBF 下的 EFIE 阻抗矩阵
-    calZnearCSCEFIE!(level, geosInfo, ZnearCSC, bfT)
+    calZnearCSCEFIE!(level, geosInfo, Znear, bfT)
     nothing
 end
-
-function calZnearCSC!(level, geosInfoV::AbstractVector{VT}, 
-    ZnearCSC) where {VT<:AbstractVector}
-    if eltype(geosInfoV[1]) <: SurfaceCellType
-
+function calZnearCSC!(level, geosInfo::AbstractVector{VT}, Znear) where {VT<:AbstractVector}
+    if eltype(geosInfo[1]) <: SurfaceCellType
         # 面元、体元
-        tris    =   geosInfoV[1]
-        geoVs   =   geosInfoV[2]
+        tris    =   geosInfo[1]
+        geoVs   =   geosInfo[2]
 
         # 面积分 - 面积分 部分
         if SimulationParams.ieT == :EFIE
             # 计算 RWG下 的 EFIE 阻抗矩阵
-            calZnearCSCEFIE!(level, tris, ZnearCSC, VSBFTypes.sbfType)
+            calZnearCSCEFIE!(level, tris, Znear, VSBFTypes.sbfType)
         elseif SimulationParams.ieT == :MFIE
             # 计算 RWG下 的 MFIE 阻抗矩阵
-            calZnearCSCMFIE!(level, tris, ZnearCSC, VSBFTypes.sbfType)
+            calZnearCSCMFIE!(level, tris, Znear, VSBFTypes.sbfType)
         elseif SimulationParams.ieT == :CFIE
             # 计算 RWG下 的 CFIE 阻抗矩阵
-            calZnearCSCCFIE!(level, tris, ZnearCSC, VSBFTypes.sbfType)
+            calZnearCSCCFIE!(level, tris, Znear, VSBFTypes.sbfType)
         end
 
         # 体积分 - 体积分部分
         # 计算 SWG/PWC/RBF 下的 EFIE 阻抗矩阵
-        calZnearCSCEFIE!(level, geoVs, ZnearCSC, VSBFTypes.vbfType)
+        calZnearCSCEFIE!(level, geoVs, Znear, VSBFTypes.vbfType)
 
         # 计算 RWG + SWG/PWC/RBF 下的 EFIE 阻抗矩阵
-        calZnearCSCEFIE!(level, tris, geoVs, ZnearCSC, VSBFTypes.vbfType)
+        calZnearCSCEFIE!(level, tris, geoVs, Znear, VSBFTypes.vbfType)
     else# 没有面源则是体混合网格
-
-        # # 计算各自阻抗矩阵
-        # for geosInfo in geosInfoV
-        #     calZnearCSCEFIE!(level, geosInfo, ZnearCSC, VSBFTypes.vbfType)
-        # end
-        # 计算相互之间的阻抗矩阵
-        for i in 1:length(geosInfoV)
-            geosA = geosInfoV[i]
-            for j in (i+1):length(geosInfoV)
-                geosB = geosInfoV[j]
-                calZnearCSCEFIE!(level, geosA, geosB, ZnearCSC, VSBFTypes.vbfType)
+        # 计算不同的体网格自身与相互之间的阻抗矩阵
+        for i in 1:length(geosInfo)
+            geosA = geosInfo[i]
+            for j in (i+1):length(geosInfo)
+                geosB = geosInfo[j]
+                calZnearCSCEFIE!(level, geosA, geosB, Znear, VSBFTypes.vbfType)
             end
         end
     end
     nothing
 end
-
 
 # 各类信息
 include("ZnearEFIE.jl")

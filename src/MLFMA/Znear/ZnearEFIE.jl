@@ -2,7 +2,7 @@
 采用 RWG 基函数计算 EFIE 面积分（SIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
-                        ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:LinearBasisFunction}
+                        Znear::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:LinearBasisFunction}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -113,9 +113,9 @@ function calZnearCSCEFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
                         # 往矩阵填充结果
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
+                            Znear[m, n] += Zts[mi, ni]
                             !(m in cubeBFinterval) && begin
-                                ZnearCSC[n, m] += Zts[mi, ni]
+                                Znear[n, m] += Zts[mi, ni]
                             end
                         end
                     end
@@ -135,8 +135,8 @@ function calZnearCSCEFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] & nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zts[mi, ni]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zts[mi, ni]
                         end
                     end
                 else
@@ -158,8 +158,8 @@ function calZnearCSCEFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] & nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zts[mi, ni]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zts[mi, ni]
                         end
                     end
                     
@@ -175,7 +175,7 @@ end
 采用 SWG 基函数计算网格元 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}},
-                            ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:LinearBasisFunction}
+                            Znear::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:LinearBasisFunction}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -298,9 +298,9 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
                         # 往矩阵填充结果
                         # 判断是不是在源盒子、场盒子包含的区间内
                         (msInInterval[mi] && nsInInterval[ni]) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
+                            Znear[m, n] += Zts[mi, ni]
                             !(m in cubeBFinterval) && begin
-                                ZnearCSC[n, m] += Zts[mi, ni]
+                                Znear[n, m] += Zts[mi, ni]
                             end
                         end # begin
                     end
@@ -319,8 +319,8 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                         end
                     end
                 else
@@ -337,8 +337,8 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                         end
                     end
                     
@@ -386,7 +386,7 @@ end
 采用 PWC 基函数计算四面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}},
-    ZnearCSC::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:ConstBasisFunction}
+    Znear::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:ConstBasisFunction}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -476,15 +476,15 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
                             m = tetrat.inBfsID[mi]
                             # 写入
                             if discreteJ
-                                ZnearCSC[m, n]  =   Zts[mi, ni]
+                                Znear[m, n]  =   Zts[mi, ni]
                             else
-                                ZnearCSC[m, n]  =   Zts[mi, ni]*κₜ
+                                Znear[m, n]  =   Zts[mi, ni]*κₜ
                             end
                         end
                         if discreteJ
-                            ZnearCSC[n, n] += ZtsPV/(tetrat.ε - ε_0)
+                            Znear[n, n] += ZtsPV/(tetrat.ε - ε_0)
                         else
-                            ZnearCSC[n, n] += ZtsPV/tetrat.ε
+                            Znear[n, n] += ZtsPV/tetrat.ε
                         end
                     end
 
@@ -498,11 +498,11 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
                         n = tetras.inBfsID[ni]
                         # 写入
                         if discreteJ
-                            ZnearCSC[m, n]  =   Zts[mi, ni]
-                            ZnearCSC[n, m]  =   Zts[mi, ni]
+                            Znear[m, n]  =   Zts[mi, ni]
+                            Znear[n, m]  =   Zts[mi, ni]
                         else
-                            ZnearCSC[m, n]  =   Zts[mi, ni]*κₛ
-                            ZnearCSC[n, m]  =   Zts[mi, ni]*κₜ
+                            Znear[m, n]  =   Zts[mi, ni]*κₛ
+                            Znear[n, m]  =   Zts[mi, ni]*κₜ
                         end
                     end
                 else
@@ -516,11 +516,11 @@ function calZnearCSCEFIE!(level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, F
                         n = tetras.inBfsID[ni]
                         # 写入
                         if discreteJ
-                            ZnearCSC[m, n]  =   Zts[mi, ni]
-                            ZnearCSC[n, m]  =   Zts[mi, ni]
+                            Znear[m, n]  =   Zts[mi, ni]
+                            Znear[n, m]  =   Zts[mi, ni]
                         else
-                            ZnearCSC[m, n]  =   Zts[mi, ni]*κₛ
-                            ZnearCSC[n, m]  =   Zts[mi, ni]*κₜ
+                            Znear[m, n]  =   Zts[mi, ni]*κₛ
+                            Znear[n, m]  =   Zts[mi, ni]*κₜ
                         end
                     end
                 end # if
@@ -535,7 +535,7 @@ end
 采用 RBF 基函数计算六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIEnew!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}},
-                        ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:LinearBasisFunction}
+                        Znear::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:LinearBasisFunction}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -641,9 +641,9 @@ function calZnearCSCEFIEnew!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, 
                         # 往矩阵填充结果
                         # 判断是不是在源盒子、场盒子包含的区间内
                         (msInInterval[mi] && nsInInterval[ni]) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
+                            Znear[m, n] += Zts[mi, ni]
                             !(m in cubeBFinterval) && begin
-                                ZnearCSC[n, m] += Zts[mi, ni]
+                                Znear[n, m] += Zts[mi, ni]
                             end
                         end # begin
                     end
@@ -661,8 +661,8 @@ function calZnearCSCEFIEnew!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, 
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                         end
                     end
                 else
@@ -679,8 +679,8 @@ function calZnearCSCEFIEnew!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, 
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                         end
                     end
                     
@@ -695,7 +695,7 @@ end
 采用 RBF 基函数计算六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}},
-                        ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:LinearBasisFunction}
+                        Znear::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:LinearBasisFunction}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -806,7 +806,7 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
                         # 判断是不是在源盒子、场盒子包含的区间内
                         (msInInterval[mi] && nsInInterval[ni]) && begin
                             lock(lockZ)
-                            ZnearCSC[m, n] += Zts[mi, ni]
+                            Znear[m, n] += Zts[mi, ni]
                             unlock(lockZ)
                         end # begin
                     end
@@ -822,8 +822,8 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
                             lock(lockZ)
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                             unlock(lockZ)
                         end
                     end
@@ -839,8 +839,8 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
                             lock(lockZ)
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                             unlock(lockZ)
                         end
                     end
@@ -857,7 +857,7 @@ end
 采用 PWC 基函数计算六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}},
-    ZnearCSC::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:ConstBasisFunction}
+    Znear::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:ConstBasisFunction}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -947,15 +947,15 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
                             
                             # 写入
                             if discreteJ
-                                ZnearCSC[m, n]  =   Zts[mi, ni]
+                                Znear[m, n]  =   Zts[mi, ni]
                             else
-                                ZnearCSC[m, n]  =   Zts[mi, ni]*κₜ
+                                Znear[m, n]  =   Zts[mi, ni]*κₜ
                             end
                         end
                         if discreteJ
-                            ZnearCSC[n, n] += ZtsPV/(hexat.ε - ε_0)
+                            Znear[n, n] += ZtsPV/(hexat.ε - ε_0)
                         else
-                            ZnearCSC[n, n] += ZtsPV/hexat.ε
+                            Znear[n, n] += ZtsPV/hexat.ε
                         end
                     end
 
@@ -969,11 +969,11 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
                         n = hexas.inBfsID[ni]
                         # 写入
                         if discreteJ
-                            ZnearCSC[m, n]  =   Zts[mi, ni]
-                            ZnearCSC[n, m]  =   Zts[mi, ni]
+                            Znear[m, n]  =   Zts[mi, ni]
+                            Znear[n, m]  =   Zts[mi, ni]
                         else
-                            ZnearCSC[m, n]  =   Zts[mi, ni]*κₛ
-                            ZnearCSC[n, m]  =   Zts[mi, ni]*κₜ
+                            Znear[m, n]  =   Zts[mi, ni]*κₛ
+                            Znear[n, m]  =   Zts[mi, ni]*κₜ
                         end
                     end
                 else
@@ -987,11 +987,11 @@ function calZnearCSCEFIE!(level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT,
                         n = hexas.inBfsID[ni]
                         # 写入
                         if discreteJ
-                            ZnearCSC[m, n]  =   Zts[mi, ni]
-                            ZnearCSC[n, m]  =   Zts[mi, ni]
+                            Znear[m, n]  =   Zts[mi, ni]
+                            Znear[n, m]  =   Zts[mi, ni]
                         else
-                            ZnearCSC[m, n]  =   Zts[mi, ni]*κₛ
-                            ZnearCSC[n, m]  =   Zts[mi, ni]*κₜ
+                            Znear[m, n]  =   Zts[mi, ni]*κₛ
+                            Znear[n, m]  =   Zts[mi, ni]*κₜ
                         end
                     end
                     
@@ -1007,7 +1007,7 @@ end
 采用 PWC + PWC 基函数计算 四面体 + 六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(  level, geos1Info::AbstractVector{VT1}, geos2Info::AbstractVector{VT2},
-    ZnearCSC::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {FT<:Real, CT<:Complex{FT}, 
+    Znear::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {FT<:Real, CT<:Complex{FT}, 
     VT1<:TetrahedraInfo, VT2<:HexahedraInfo, BFT<:PWC}
 
     # 两中网格的索引区间
@@ -1138,26 +1138,26 @@ function calZnearCSCEFIE!(  level, geos1Info::AbstractVector{VT1}, geos2Info::Ab
                 if tid == sid
                     # 重合
                     Zts, ZtsPV  =   tin1 ? EFIEOnTetraPWCSepPV(geot1) : EFIEOnHexaPWCSepPV(geot2)
-                    tin1 ? writeZtt!(ZnearCSC, Zts, ZtsPV, geot1, discreteJ) : writeZtt!(ZnearCSC, Zts, ZtsPV, geot2, discreteJ)
+                    tin1 ? writeZtt!(Znear, Zts, ZtsPV, geot1, discreteJ) : writeZtt!(Znear, Zts, ZtsPV, geot2, discreteJ)
 
                 else
                     # 需要进行近奇异性处理的场源网格元
                     if tin1
                         if sin1
                             Zts    =   (Rts < Rsglrlc) ? EFIEOnNearTetrasPWC(geot1, geos1) : EFIEOnTetrasPWC(geot1, geos1)
-                            writeZts!(ZnearCSC, Zts, msInInterval, nsInInterval, geot1, geos1, discreteJ)
+                            writeZts!(Znear, Zts, msInInterval, nsInInterval, geot1, geos1, discreteJ)
                         else
                             Zts    =   (Rts < Rsglrlc) ? EFIEOnNearHexaTetraPWC(geot1, geos2) : EFIEOnHexaTetraPWC(geot1, geos2)
-                            writeZts!(ZnearCSC, Zts, msInInterval, nsInInterval, geot1, geos2, discreteJ)
+                            writeZts!(Znear, Zts, msInInterval, nsInInterval, geot1, geos2, discreteJ)
                         end
                     else
                         if sin1
                             Zts    =   (Rts < Rsglrlc) ? EFIEOnNearHexaTetraPWC(geot2, geos1) : EFIEOnHexaTetraPWC(geot2, geos1)
-                            writeZts!(ZnearCSC, Zts, msInInterval, nsInInterval, geot2, geos1, discreteJ)
+                            writeZts!(Znear, Zts, msInInterval, nsInInterval, geot2, geos1, discreteJ)
                         else
                             # @show 1, msInInterval, nsInInterval, typeof(geot2), typeof(geos2), discreteJ
                             Zts    =   (Rts < Rsglrlc) ? EFIEOnNearHexasPWC(geot2, geos2) : EFIEOnHexasPWC(geot2, geos2)
-                            writeZts!(ZnearCSC, Zts, msInInterval, nsInInterval, geot2, geos2, discreteJ)
+                            writeZts!(Znear, Zts, msInInterval, nsInInterval, geot2, geos2, discreteJ)
                         end
                     end
                 end # if
@@ -1172,7 +1172,7 @@ end
 """
 为适应类型变化而将写入部分单独封装
 """
-function writeZtt!(ZnearCSC, Zts, ZtsPV::T, geot::GT, discreteJ::Bool) where  {T<:Number, GT<:VolumeCellType}
+function writeZtt!(Znear, Zts, ZtsPV::T, geot::GT, discreteJ::Bool) where  {T<:Number, GT<:VolumeCellType}
 
     for ni in 1:3
         n = geot.inBfsID[ni]
@@ -1181,22 +1181,22 @@ function writeZtt!(ZnearCSC, Zts, ZtsPV::T, geot::GT, discreteJ::Bool) where  {T
             m = geot.inBfsID[mi]
             # 写入
             if discreteJ
-                ZnearCSC[m, n]  =   Zts[mi, ni]
+                Znear[m, n]  =   Zts[mi, ni]
             else
-                ZnearCSC[m, n]  =   Zts[mi, ni]*geot.κ
+                Znear[m, n]  =   Zts[mi, ni]*geot.κ
             end
         end
         if discreteJ
-            ZnearCSC[n, n] += ZtsPV/(geot.ε - ε_0)
+            Znear[n, n] += ZtsPV/(geot.ε - ε_0)
         else
-            ZnearCSC[n, n] += ZtsPV/geot.ε
+            Znear[n, n] += ZtsPV/geot.ε
         end
     end
 
     nothing
 end
 
-function writeZts!(ZnearCSC, Zts, msInInterval, nsInInterval, geot::GT1, geos::GT2, discreteJ::Bool) where {GT1<:VolumeCellType, GT2<:VolumeCellType}
+function writeZts!(Znear, Zts, msInInterval, nsInInterval, geot::GT1, geos::GT2, discreteJ::Bool) where {GT1<:VolumeCellType, GT2<:VolumeCellType}
 
     # 写入数据
     for ni in 1:3, mi in 1:3
@@ -1206,11 +1206,11 @@ function writeZts!(ZnearCSC, Zts, msInInterval, nsInInterval, geot::GT1, geos::G
         # 判断是不是在源盒子、场盒子包含的区间内
         ((msInInterval[mi] && nsInInterval[ni])) && begin
             if discreteJ
-                ZnearCSC[m, n]  =   Zts[mi, ni]
-                ZnearCSC[n, m]  =   Zts[mi, ni]
+                Znear[m, n]  =   Zts[mi, ni]
+                Znear[n, m]  =   Zts[mi, ni]
             else
-                ZnearCSC[m, n]  =   Zts[mi, ni]*geos.κ
-                ZnearCSC[n, m]  =   Zts[mi, ni]*geot.κ
+                Znear[m, n]  =   Zts[mi, ni]*geos.κ
+                Znear[n, m]  =   Zts[mi, ni]*geot.κ
             end
         end
     end

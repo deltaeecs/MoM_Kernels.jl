@@ -14,7 +14,7 @@ source::    激励源
 Zopt::      阻抗矩阵算子，由近场稀疏矩阵和远场八叉树聚合、转移、解聚组成
 V::         激励向量
 Octree::    八叉树
-ZnearCSC::  阻抗矩阵近场元
+Znear::  阻抗矩阵近场元
 """
 function getImpedanceOptAndExciteVOctree(geosInfo, bfsInfo, source)
     # 根据几何信息与基函数数量，计算阻抗矩阵算子
@@ -35,7 +35,7 @@ source::    激励源
 Zopt::      阻抗矩阵算子，由近场稀疏矩阵和远场八叉树聚合、转移、解聚组成
 V::         激励向量
 Octree::    八叉树
-ZnearCSC::  阻抗矩阵近场元
+Znear::  阻抗矩阵近场元
 """
 function getImpedanceOpt(geosInfo, bfsInfo)
     # 计算八叉树
@@ -43,9 +43,9 @@ function getImpedanceOpt(geosInfo, bfsInfo)
     # 叶层
     leafLevel   =   octree.levels[nLevels]
     # 计算近场矩阵CSC
-    ZnearCSC    =   calZnearCSC(leafLevel, geosInfo, bfsInfo)
+    Znear    =   calZnearCSC(leafLevel, geosInfo, bfsInfo)
     # 构建矩阵向量乘积算子
-    Zopt    =   MLMFAIterator(ZnearCSC, octree, geosInfo, bfsInfo)
+    Zopt    =   MLMFAIterator(Znear, octree, geosInfo, bfsInfo)
     # 返回
     Zopt
 end

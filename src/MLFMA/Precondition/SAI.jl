@@ -1,5 +1,10 @@
 # 本文件提供计算稀疏近似逆预条件的函数
 
+"""
+    SAIPrec{T} <: AbstractMatrix{T} 
+
+封装系数近似逆矩阵的类型。
+"""
 struct SAIPrec{T} <: AbstractMatrix{T}
     mat::AbstractMatrix{T}
 end
@@ -7,43 +12,37 @@ end
 Base.show(io::IO, unused::MIME{Symbol("text/plain")}, M::SAIPrec{T}) where {T} = show(io, unused, M.mat)
 Base.display(M::SAIPrec{T}) where {T} = display(M.mat)
 Base.size(M::SAIPrec{T}) where {T} = size(M.mat)
-
 SparseArrays.nnz(M::SAIPrec{T}) where {T} = nnz(M.mat)
 
 
-"""
-x .= M * x
+@doc """
+    ldiv!(M::SAIPrec{T}, x::AbstractVector) where {T}
+    ldiv!(y::AbstractVector, M::SAIPrec{T}, x::AbstractVector) where {T}
+
+实现 `x .= M * x` 或 `y .= M * x`。
 """
 function LinearAlgebra.ldiv!(M::SAIPrec{T}, x::AbstractVector) where {T}
     x .= M.mat * x
 end
-
-
-"""
-y .= M * x
-"""
 function LinearAlgebra.ldiv!(y::AbstractVector, M::SAIPrec{T}, x::AbstractVector) where {T}
     mul!(y, M.mat, x)
 end
 
 Base.eltype(::SAIPrec{T}) where {T} = T
-
 Base.:\(M::SAIPrec{T}, x::AbstractVector) where {T}= ldiv!(copy(x), M, x)
 
 """
-计算稀疏近似逆 (Sparse Approximate Inverse (SAI)) 的函数
-输入为近场阻抗矩阵CSC, 叶层信息 (也可以为非叶层, 但计算量更大) 
-ZnearCSC::ZnearT{CT}
-cubes
-该函数提供左预条件
+    sparseApproximateInversePl(Znear::ZnearT{CT}, cubes::AbstractVector) where {FT<:Real, CT<:Complex{FT}}
+
+根据近场阻抗矩阵 `Znear` 和计算阻抗矩阵层的盒子信息 `cubes` 计算左稀疏近似逆 (Sparse Approximate Inverse (SAI)) 。
 """
-function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector) where {FT<:Real, CT<:Complex{FT}}
+function sparseApproximateInversePl(Znear::ZnearT{CT}, cubes::AbstractVector) where {FT<:Real, CT<:Complex{FT}}
     @clock "计算SAI" begin
         # 将本函数内的BLAS设为单线程
         nthds = nthreads()
         BLAS.set_num_threads(1)
-        # 首先预分配结果, 采用与 ZnearCSC 相同的稀疏模式
-        preM    =   deepcopy(ZnearCSC)
+        # 首先预分配结果, 采用与 Znear 相同的稀疏模式
+        preM    =   deepcopy(Znear)
 
         # 所有的盒子
         nCubes  =   length(cubes)
@@ -91,7 +90,7 @@ function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
             Znn     =   reshape(view(Znnt, 1:nNeibfs*nNeisNeibfs), nNeibfs, nNeisNeibfs)
 
             for j in 1:length(neisNeibfs), i in 1:length(neibfs)
-                Znn[i, j]  =   ZnearCSC[neibfs[i], neisNeibfs[j]]
+                Znn[i, j]  =   Znear[neibfs[i], neisNeibfs[j]]
             end
             ZnnH    =   Znn'
 
@@ -134,19 +133,17 @@ end
 
 
 """
-计算稀疏近似逆 (Sparse Approximate Inverse (SAI)) 的函数
-输入为近场阻抗矩阵CSC, 叶层信息 (也可以为非叶层, 但计算量更大) 
-ZnearCSC::::SparseMatrixCSC{CT, Int}
-cubes
-该函数提供右预条件
+    sparseApproximateInversePr(Znear::ZnearT{CT}, cubes::AbstractVector) where {FT<:Real, CT<:Complex{FT}}
+
+根据近场阻抗矩阵 `Znear` 和计算阻抗矩阵层的盒子信息 `cubes` 计算右稀疏近似逆 (Sparse Approximate Inverse (SAI)) 。
 """
-function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector) where { FT<:Real, CT<:Complex{FT}}
+function sparseApproximateInversePr(Znear::ZnearT{CT}, cubes::AbstractVector) where { FT<:Real, CT<:Complex{FT}}
     @clock "计算SAI" begin
         # 将本函数内的BLAS设为单线程
         nthds = nthreads()
         BLAS.set_num_threads(1)
-        # 首先预分配结果, 采用与 ZnearCSC 相同的稀疏模式
-        preM    =   deepcopy(ZnearCSC)
+        # 首先预分配结果, 采用与 Znear 相同的稀疏模式
+        preM    =   deepcopy(Znear)
 
         # 所有的盒子
         nCubes  =   length(cubes)
@@ -191,9 +188,9 @@ function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
             length(Znnt) < nNeibfs*nNeisNeibfs && resize!(Znnt, nNeibfs*nNeisNeibfs)
             fill!(Znnt, 0)
             Znn     =   reshape(view(Znnt, 1:nNeibfs*nNeisNeibfs), nNeisNeibfs, nNeibfs)
-            # Znn    .=   ZnearCSC[neisNeibfs, neibfs]
+            # Znn    .=   Znear[neisNeibfs, neibfs]
             for j in 1:length(neibfs), i in 1:length(neisNeibfs)
-                Znn[i, j]  =   ZnearCSC[neisNeibfs[i], neibfs[j]]
+                Znn[i, j]  =   Znear[neisNeibfs[i], neibfs[j]]
             end
             ZnnH    =   adjoint(Znn)
 
@@ -235,53 +232,45 @@ function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, cubes::AbstractVector)
 end
 
 """
-计算稀疏近似逆 (Sparse Approximate Inverse (SAI)) 的函数
-输入为近场阻抗矩阵CSC, 叶层信息 (也可以为非叶层, 但计算量更大) 
-ZnearCSC::::SparseMatrixCSC{CT, Int}
-level
-该函数提供左预条件
+    sparseApproximateInversePl(Znear::ZnearT{CT}, level::LT) where { CT<:Complex, LT <: AbstractLevel}
+
+根据近场阻抗矩阵 `Znear` 和计算阻抗矩阵层信息 `level` 计算左稀疏近似逆 (Sparse Approximate Inverse (SAI)) 。
 """
-function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, level::LT) where { CT<:Complex, LT <: AbstractLevel}
+function sparseApproximateInversePl(Znear::ZnearT{CT}, level::LT) where { CT<:Complex, LT <: AbstractLevel}
     # 计算结果
-    sparseApproximateInversePl(ZnearCSC, level.cubes)
+    sparseApproximateInversePl(Znear, level.cubes)
 end
 
 """
-计算稀疏近似逆 (Sparse Approximate Inverse (SAI)) 的函数
-输入为近场阻抗矩阵CSC, 叶层信息 (也可以为非叶层, 但计算量更大) 
-ZnearCSC::::SparseMatrixCSC{CT, Int}
-octree::Octree{FT}
-该函数提供右预条件
+    sparseApproximateInversePr(Znear::ZnearT{CT}, level::LT) where { CT<:Complex, LT <: AbstractLevel}
+
+根据近场阻抗矩阵 `Znear` 和计算阻抗矩阵层信息 `level` 计算右稀疏近似逆 (Sparse Approximate Inverse (SAI)) 。
 """
-function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, level::LT) where { CT<:Complex, LT <: AbstractLevel}
+function sparseApproximateInversePr(Znear::ZnearT{CT}, level::LT) where { CT<:Complex, LT <: AbstractLevel}
     # 计算结果
-    sparseApproximateInversePr(ZnearCSC, level.cubes)
+    sparseApproximateInversePr(Znear, level.cubes)
 end
 
 """
-计算稀疏近似逆 (Sparse Approximate Inverse (SAI)) 的函数
-输入为近场阻抗矩阵CSC, 叶层信息 (也可以为非叶层, 但计算量更大) 
-ZnearCSC::::SparseMatrixCSC{CT, Int}
-octree::Octree{FT}
-该函数提供左预条件
+    sparseApproximateInversePl(Znear::ZnearT{CT}, octree::OctreeInfo{FT, LT}) where { FT<:Real, CT<:Complex{FT}, LT}
+    
+根据近场阻抗矩阵 `Znear` 和八叉树 `octree` 叶层计算左稀疏近似逆 (Sparse Approximate Inverse (SAI)) 。
 """
-function sparseApproximateInversePl(ZnearCSC::ZnearT{CT}, octree::OctreeInfo{FT, LT}) where { FT<:Real, CT<:Complex{FT}, LT}
+function sparseApproximateInversePl(Znear::ZnearT{CT}, octree::OctreeInfo{FT, LT}) where { FT<:Real, CT<:Complex{FT}, LT}
     # 层数
     nLevel::Int = max(keys(octree.levels)...)
     # 计算结果
-    sparseApproximateInversePl(ZnearCSC, octree.levels[nLevel])
+    sparseApproximateInversePl(Znear, octree.levels[nLevel])
 end
 
 """
-计算稀疏近似逆 (Sparse Approximate Inverse (SAI)) 的函数
-输入为近场阻抗矩阵CSC, 叶层信息 (也可以为非叶层, 但计算量更大) 
-ZnearCSC::::SparseMatrixCSC{CT, Int}
-octree::Octree{FT}
-该函数提供右预条件
+    sparseApproximateInversePr(Znear::ZnearT{CT}, octree::OctreeInfo{FT, LT}) where { FT<:Real, CT<:Complex{FT}, LT}
+
+根据近场阻抗矩阵 `Znear` 和八叉树 `octree` 叶层计算右稀疏近似逆 (Sparse Approximate Inverse (SAI)) 。
 """
-function sparseApproximateInversePr(ZnearCSC::ZnearT{CT}, octree::OctreeInfo{FT, LT}) where { FT<:Real, CT<:Complex{FT}, LT}
+function sparseApproximateInversePr(Znear::ZnearT{CT}, octree::OctreeInfo{FT, LT}) where { FT<:Real, CT<:Complex{FT}, LT}
     # 层数
     nLevel::Int = max(keys(octree.levels)...)
     # 计算结果
-    sparseApproximateInversePr(ZnearCSC, octree.levels[nLevel])
+    sparseApproximateInversePr(Znear, octree.levels[nLevel])
 end

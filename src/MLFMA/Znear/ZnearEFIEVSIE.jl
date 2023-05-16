@@ -3,7 +3,7 @@
 采用 RWG + SWG 基函数计算 三角形 + 四面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::AbstractVector{TetrahedraInfo{IT, FT, CT}},
-                            ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:SWG}
+                            Znear::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:SWG}
     
     # 三角形、四面体数
     ntri    =   length(tris)
@@ -114,8 +114,8 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                         end
                     end
                 else
@@ -134,8 +134,8 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                         end
                     end
                     
@@ -152,7 +152,7 @@ end
 采用 RWG + RBF 基函数计算六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}},
-    ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:RBF}
+    Znear::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:RBF}
     
     # 三角形、六面体数
     ntri    =   length(tris)
@@ -263,8 +263,8 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, hexasInfo::
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
                             lock(lockZ)
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                             unlock(lockZ)
                         end
                     end
@@ -282,8 +282,8 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, hexasInfo::
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
                             lock(lockZ)
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                             unlock(lockZ)
                         end
                     end
@@ -302,7 +302,7 @@ end
 采用 RWG + PWC 基函数计算 三角形 + 四面体/六面体 EFIE 的体积分（VIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::AbstractVector{VT},
-    ZnearCSC::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, VT<:VolumeCellType, BFT<:PWC}
+    Znear::ZnearT{CT}, ::Type{BFT}, discreteVar = SimulationParams.discreteVar) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, VT<:VolumeCellType, BFT<:PWC}
     
     # 三角形数
     ntri    =   length(tris)
@@ -419,11 +419,11 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
                             lock(lockZ)
                             if discreteJ
-                                ZnearCSC[m, n]  +=  Zts[mi, ni]
+                                Znear[m, n]  +=  Zts[mi, ni]
                             else
-                                ZnearCSC[m, n]  +=  Zts[mi, ni] * κs
+                                Znear[m, n]  +=  Zts[mi, ni] * κs
                             end
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[n, m] += Zst[ni, mi]
                             unlock(lockZ)
                         end
                     end
@@ -442,11 +442,11 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
                             lock(lockZ)
                             if discreteJ
-                                ZnearCSC[m, n]  +=  Zts[mi, ni]
+                                Znear[m, n]  +=  Zts[mi, ni]
                             else
-                                ZnearCSC[m, n]  +=  Zts[mi, ni] * κs
+                                Znear[m, n]  +=  Zts[mi, ni] * κs
                             end
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[n, m] += Zst[ni, mi]
                             unlock(lockZ)
                         end
                     end

@@ -40,7 +40,7 @@ include("IterateOnOctree.jl")
 """
 实现矩阵向量乘积，并封装为线性算子
 """
-function MLMFAIterator(ZnearCSC, octree::OctreeInfo{FT, LT}, 
+function MLMFAIterator(Znear, octree::OctreeInfo{FT, LT}, 
     vsCellsInfo::Vector, bfsInfo::Vector) where {FT<:Real, LT<:LevelInfo}
     
     # 叶层ID
@@ -64,7 +64,7 @@ function MLMFAIterator(ZnearCSC, octree::OctreeInfo{FT, LT},
     # 给矩阵向量乘积预分配内存
     ZI  =   zeros(Complex{FT}, nbf)
 
-    Zopt =  MLMFAIterator{Complex{FT}, Vector}(octree, ZnearCSC, vsCellsInfo, bfsInfo, aggSBF, disaggSBF, ZI)
+    Zopt =  MLMFAIterator{Complex{FT}, Vector}(octree, Znear, vsCellsInfo, bfsInfo, aggSBF, disaggSBF, ZI)
 
     record_memorys(Zopt)
 
