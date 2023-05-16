@@ -1,15 +1,14 @@
 
-"""
-获取几何信息数组的区间，针对普通 Vector 和 OffsetVector 分别派发
+@doc """
+    getGeosInterval(geosInfo::T) where {T<:AbstractVector}
+    getGeosInterval(geosInfo::T) where {T<:OffsetVector}
+
+获取几何信息数组的区间，针对普通 `Vector` 和 `OffsetVector` 分别派发。
 """
 function getGeosInterval(geosInfo::T) where {T<:AbstractVector}
     nhexa   =   length(geosInfo)
     return 1:nhexa
 end
-
-"""
-获取几何信息数组的区间，针对普通 Vector 和 OffsetVector 分别派发
-"""
 function getGeosInterval(geosInfo::T) where {T<:OffsetVector}
     nhexa   =   length(geosInfo)
     st      =   (eachindex(geosInfo).offset) + 1
@@ -17,10 +16,14 @@ function getGeosInterval(geosInfo::T) where {T<:OffsetVector}
 end
 
 """
-计算某层聚合项, 输入为三角形信息和 RWG 基函数信息
+    aggSBFOnLevelEFIE(level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
+    bfsInfo) where {IT<:Integer, FT<:Real}
+
+计算某层采用 EFIE 时 RWG 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF` , 
+输入为层信息 `level` 、三角形信息 `trianglesInfo` 和基函数信息 `bfsInfo`。
 """
 function aggSBFOnLevelEFIE(level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
-    rwgsInfo) where {IT<:Integer, FT<:Real}
+    bfsInfo) where {IT<:Integer, FT<:Real}
     # 层采样点
     polesr̂sθsϕs =   level.poles.r̂sθsϕs
     # poles索引
@@ -28,17 +31,20 @@ function aggSBFOnLevelEFIE(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
     # 采样多极子数量
     nPoles  =   polesIndices.stop
     # 预分配内存
-    nrwg    =   length(rwgsInfo)
+    nrwg    =   length(bfsInfo)
     aggSBF  =   zeros(Complex{FT}, nPoles, 2, nrwg)
     disaggSBF   =   similar(aggSBF)
 
-    aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo, eltype(rwgsInfo))
+    aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo, eltype(bfsInfo))
 
     return aggSBF, disaggSBF
 end
 
 """
-计算某层聚合项, 输入为三角形信息和 RWG 基函数信息
+    aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, BFT<:RWG}
+
+计算某层采用 EFIE 时 RWG 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{TriangleInfo{IT, FT}}, 
     ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, BFT<: RWG}
@@ -138,7 +144,10 @@ end
 
 
 """
-计算某层聚合项, 输入为四面体信息和 SWG 基函数信息
+    aggSBFOnLevel(level::LT, geosInfo::AbstractVector{VT}, 
+    bfsInfo::AbstractVector{BFT}) where {LT<:LevelInfo, VT<:VolumeCellType, BFT<:BasisFunctionType}
+
+计算某层采用 EFIE 时 SWG 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevel(level::LT, geosInfo::AbstractVector{VT}, 
     bfsInfo::AbstractVector{BFT}) where {LT<:LevelInfo, VT<:VolumeCellType, BFT<:BasisFunctionType}
@@ -162,7 +171,10 @@ end
 
 
 """
-计算某层聚合项, 输入为四面体信息和 SWG 基函数信息
+    aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:SWG}
+
+计算某层采用 EFIE 时 SWG 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
     ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:SWG}
@@ -275,7 +287,10 @@ end
 
 
 """
-计算某层聚合项, 输入为四面体信息和 PWC 基函数信息
+    aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
+
+计算某层采用 EFIE 时在四面体上的 PWC 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{TetrahedraInfo{IT, FT, CT}}, 
     ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
@@ -380,10 +395,11 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{Tet
     return nothing
 end
 
-
-
 """
-计算某层聚合项, 输入为六面体信息和 PWC 基函数信息
+    aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}}, 
+    ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
+
+计算某层采用 EFIE 时在六面体上的 PWC 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{HexahedraInfo{IT, FT, CT}}, 
     ::Type{BFT}; setzero = true) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:PWC}
@@ -482,7 +498,10 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{Hexa
 end
 
 """
-计算某层聚合项, 输入为六面体信息和 RBF 基函数信息
+    aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{VT}, 
+    ::Type{BFT}; setzero = true) where {VT<:HexahedraInfo, BFT<:RBF}
+
+计算某层采用 EFIE 时在六面体上的 RBF 基函数的辐射函数 `aggSBF` 、配置函数 `disaggSBF`。
 """
 function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{VT}, 
     ::Type{BFT}; setzero = true) where {VT<:HexahedraInfo, BFT<:RBF}

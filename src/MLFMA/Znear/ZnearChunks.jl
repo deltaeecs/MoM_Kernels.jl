@@ -115,7 +115,6 @@ function Base.:*(Z::T, x::AbstractVector) where{T<:ZnearChunksStruct}
     BLAS.set_num_threads(1)
     @inbounds @threads  for ii in 1:Z.nChunks
         copyto!(view(Z.rmul, Z.chunks[ii].rowIndices), Z.chunks[ii] * x)
-        # ZnearChunkMulIVec!(Z.chunks[ii], view(Z.rmuld, Z.chunks[ii].rowIndices), x)
     end
     BLAS.set_num_threads(nthds)
 
@@ -128,7 +127,6 @@ function LinearAlgebra.mul!(y, Z::T, x::AbstractVector) where{T<:ZnearChunksStru
     BLAS.set_num_threads(1)
     @inbounds @threads  for ii in 1:Z.nChunks
         mul!(view(Z.rmul, Z.chunks[ii].rowIndices), Z.chunks[ii], x)
-        # ZnearChunkMulIVec!(Z.chunks[ii], view(Z.rmuld, Z.chunks[ii].rowIndices), x)
     end
     BLAS.set_num_threads(nthds)
 

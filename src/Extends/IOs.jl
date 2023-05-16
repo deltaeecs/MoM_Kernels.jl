@@ -1,9 +1,9 @@
 
-"""
-getGeoIDsInCubeChunk(cubes, ckunkIndice)
+@doc """
+    getGeoIDsInCubeChunk(cubes, chunkIndice::Tuple)
+    getGeoIDsInCubeChunk(cubes, ckunkIndice::UnitRange)
 
-获取 ckunkIndice 内的所有 cube 的 geo ID ， 返回为 Tuple 形式以适应数组索引相关API
-
+获取 `ckunkIndice` 内的所有 `cubes` 的编号， 返回为 Tuple 形式以适应数组索引相关API
 """
 function getGeoIDsInCubeChunk(cubes, chunkIndice::Tuple)
 
@@ -12,13 +12,6 @@ function getGeoIDsInCubeChunk(cubes, chunkIndice::Tuple)
     return (unique!(sort!(geoIDs)), )
 
 end
-
-"""
-getGeoIDsInCubeChunk(cubes, ckunkIndice)
-
-获取 ckunkIndice 内的所有 cube 的 geo ID ， 返回为 Tuple 形式以适应数组索引相关API
-
-"""
 function getGeoIDsInCubeChunk(cubes, chunkIndice::UnitRange)
 
     geoIDs = reduce(vcat, cubes[i].geoIDs for i in chunkIndice)
@@ -27,35 +20,26 @@ function getGeoIDsInCubeChunk(cubes, chunkIndice::UnitRange)
 
 end
 
-"""
-getNeighborCubeIDs(cubes, chunkIndice)
+@doc """
+    getNeighborCubeIDs(cubes, chunkIndice::Tuple)
+    getNeighborCubeIDs(cubes, chunkIndice::AbstractVector)
 
-获取 ckunkIndice 内的所有 cube 的 邻盒子ID， 返回为 Tuple 形式以适应数组索引相关API
-
-TBW
+获取 `ckunkIndice` 内的所有 `cubes` 的 `邻盒子` 编号， 返回为 `Tuple` 形式以适应数组索引相关API
 """
 function getNeighborCubeIDs(cubes, chunkIndice::Tuple)
-
     neighborCubeIDs = reduce(vcat, cubes[i].neighbors for i in chunkIndice[1])
-
     return (unique!(sort!(neighborCubeIDs)), )
-
 end
-
 function getNeighborCubeIDs(cubes, chunkIndice::AbstractVector)
-
     neighborCubeIDs = reduce(vcat, cubes[i].neighbors for i in chunkIndice)
-
     return (unique!(sort!(neighborCubeIDs)), )
-
 end
 
 
 """
-saveGeosInfoChunks(geos::AbstractVector, cubes, name::AbstractString, nchunk::Int; dir = "")
+    saveGeosInfoChunks(geos::AbstractVector, cubes, name::AbstractString, nchunk::Int[; dir = "", cubes_ChunksIndices = sizeChunks2idxs(length(cubes), nchunk)])
 
-将几何信息保存在
-TBW
+将几何信息 `geos` 根据分块数量 `nchunk` 和在 `cubes` 中的分布进行分块并保存。
 """
 function saveGeosInfoChunks(geos::AbstractVector, cubes, name::AbstractString, nchunk::Int; dir = "", cubes_ChunksIndices =   sizeChunks2idxs(length(cubes), nchunk))
     # 拿到各块的包含邻盒子的id
@@ -69,12 +53,22 @@ function saveGeosInfoChunks(geos::AbstractVector, cubes, name::AbstractString, n
 
 end
 
+"""
+    getMeshDataSaveGeosInterval(filename[; meshUnit=:mm, dir = "temp/GeosInfo"])
+
+在获取网格数据 `meshData` 和介电参数 `εᵣs` 的同时保存网格数据 `meshData` 中各类型网格的区间。
+"""
 function getMeshDataSaveGeosInterval(filename; meshUnit=:mm, dir = "temp/GeosInfo");
     meshData, εᵣs   =  getMeshData(filename; meshUnit=meshUnit);
     saveGeoInterval(meshData; dir = dir)
     return meshData, εᵣs
 end
 
+"""
+    saveGeoInterval(meshData[; dir = "temp/GeosInfo"])
+
+保存网格数据 `meshData` 中各类型网格的区间。
+"""
 function saveGeoInterval(meshData; dir = "temp/GeosInfo")
     !ispath(dir) && mkpath(dir)
     data = (tri = 1:meshData.trinum, tetra = (meshData.trinum + 1):(meshData.trinum + meshData.tetranum),
@@ -85,26 +79,20 @@ end
 
 
 """
-    saveVec2Chunks(y::AbstractVector, name::AbstractString, nchunk::Int; dir = "")
+    saveVec2Chunks(y::AbstractVector, name::AbstractString, nchunk::Int[; dir = ""])
 
-    把向量分块保存。
-TBW
+把向量 `y` 以 `name` 分为 `nchunk` 块保存在 `dir` 文件夹中。
 """
 function saveVec2Chunks(y::AbstractVector, name::AbstractString, nchunk::Int; dir = "")
-
 	indices = sizeChunks2idxs(length(y), nchunk)
-
 	saveVec2Chunks(y, name, indices; dir = dir)
-
 	nothing
-
 end
 
 """
-    saveVec2Chunks(y::AbstractVector, name::AbstractString, indices; dir = "")
+    saveVec2Chunks(y::AbstractVector, name::AbstractString, indices[; dir = "", showpmeter = false, message = ""])
 
-    把向量分块保存。
-TBW
+把向量 `y` 以 `name` 按索引 `indices` 块保存在 `dir` 文件夹中。
 """
 function saveVec2Chunks(y::AbstractVector, name::AbstractString, indices; dir = "", showpmeter = false, message = "")
 
@@ -115,17 +103,14 @@ function saveVec2Chunks(y::AbstractVector, name::AbstractString, indices; dir = 
 		jldsave(joinpath(dir, "$(name)_part_$i.jld2"), data = y[indice...], size = (length(y), ), indice = indice)
         next!(pmeter)
 	end
-
 	nothing
-
 end
 
 
 """
-    saveOctree(octree; dir="")
+    saveOctree(octree[; dir=""])
 
-    保存八叉树。
-TBW
+将八叉树 `octree` 保存在 `dir` 中。
 """
 function saveOctree(octree; dir="")
 
@@ -163,32 +148,19 @@ end
 """
     get_partition(nCubes, sizePoles, np)
 
-    根据给定的盒子数、多极子数、进程数返回该层 pattern 的三个维度的划分数量。
-
+根据给定的盒子数 `nCubes` 、多极子数 `sizePoles`、进程数 `np` 返回该层辐射函数的三个维度的划分数量。
 """
 function get_partition(nCubes, sizePoles, np)
-
-    # partition = if nCubes > 3np
-    #     (1, 1, np)
-    # else
-    #     aggSize = (sizePoles, 2, nCubes)
-    #     # 分区
-    #     slicedim2mpi(aggSize, np)
-    # end
-
     temp = slicedim2mpi((sizePoles, nCubes), np)
     partition = (temp[1], 1, temp[2])
-
     return partition
-
 end
 
 
 """
-    saveLevel(level, np = ParallelParams.nprocs; dir="", kcubeIndices = nothing)
+    saveLevel(level[, np = ParallelParams.nprocs; dir="", kcubeIndices = nothing])
 
-    保存层信息。
-TBW
+将层 `level` 信息保存，其中的盒子信息由 [`get_partition`](@ref) 计算的分块信息部分保存。
 """
 function saveLevel(level, np = ParallelParams.nprocs; dir="", kcubeIndices = nothing)
 
@@ -196,26 +168,34 @@ function saveLevel(level, np = ParallelParams.nprocs; dir="", kcubeIndices = not
 
     # cube要单独处理
     cubes = level.cubes
+    # cubes单独保存因此先剔除
     level.cubes = eltype(cubes)[]
 
     # 多极子数
     sizePoles   =   length(level.poles.r̂sθsϕs)
-
+    # 层内划分
     partition =   get_partition(length(cubes), sizePoles, np)
-
+    # 保存盒子并获取该层盒子的分布索引
     indices = saveCubes(cubes, partition; name = "Level_$(level.ID)_Cubes", dir=dir, kcubeIndices = kcubeIndices)
 
     # 保存
     jldsave(joinpath(dir, "Level_$(level.ID).jld2"), data = level)
-
+    # 恢复信息
     level.cubes = cubes
 
     return indices
 
 end
 
-"""
-这六个函数用于寻找盒子的子盒子区间内的比较函数，多重分派以实现
+@doc """
+    func4Cube1stkInterval(cube::CubeInfo)
+    func4Cube1stkInterval(i::T) where T
+    func4Cube1stkInterval(interval::T) where T <: UnitRange
+    func4CubelastkInterval(cube::CubeInfo)
+    func4CubelastkInterval(i::T) where T
+    func4CubelastkInterval(interval::T) where T
+
+这六个函数用于寻找盒子的子盒子区间内的比较函数，多重分派以实现不同数据类型的比较。
 """
 func4Cube1stkInterval(cube::CubeInfo) = first(cube.kidsInterval)
 func4Cube1stkInterval(i::T) where T <: Integer = i
@@ -225,17 +205,18 @@ func4CubelastkInterval(i::T) where T <: Integer = i
 func4CubelastkInterval(interval::T) where T <: UnitRange = last(interval)
 
 """
-根据 partition 计算在盒子方向本层所有 rank 到子层所有 rank 的 map。
+    get_partition_map(partition, kcubeIndices)
+
+根据 `partition` 计算在盒子方向本层所有 rank 到子层所有 rank 的 map 。
 """
 function get_partition_map(partition, kcubeIndices)
     collect(eachcol(reshape(repeat(1:length(kcubeIndices), inner = prod(partition) ÷ length(kcubeIndices)), :, partition[3])))
 end
 
 """
-    saveCubes(cubes, nchunk = ParallelParams.nprocs; name, dir="", kcubeIndices = nothing)
+    saveCubes(cubes[, nchunk = ParallelParams.nprocs; name, dir="", kcubeIndices = nothing])
 
-    保存盒子。
-TBW
+将盒子 `cubes` 分为 `nchunk` 块以 `name` 为名保存在 `dir`中。`kcubeIndices` 同于计算不同分区间重复的部分。
 """
 function saveCubes(cubes, partition; name, dir="", kcubeIndices = nothing)
     nchunk = partition[3]
@@ -276,12 +257,7 @@ end
 """
     getNeiFarNeighborCubeIDs(cubes, chunkIndice::Tuple)
 
-
-    getFarNeighborCubeIDs(cubes, chunkIndice)
-
-    获取 ckunkIndice 内的所有 cube 的 远亲盒子ID， 返回为 Tuple 形式以适应数组索引相关API
-
-TBW
+获取 `ckunkIndice` 内的所有 `cubes` 的 远亲盒子 序号， 返回为 `Tuple` 形式以适应数组索引相关 API。
 """
 function getNeiFarNeighborCubeIDs(cubes, chunkIndice::Tuple)
 

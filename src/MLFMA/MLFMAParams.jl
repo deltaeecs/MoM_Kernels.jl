@@ -10,6 +10,7 @@ Base.@kwdef mutable struct MLFMAParamsType{FT<:AbstractFloat}
     NBDIGITS::Int = 3# MLFMA精度
     LEAFCUBESIZE ::FT = 0.23*Params.λ_0
     InterpolationMethod::Symbol = :Lagrange2Step
+    useCSR::Bool = false
 end
 
 """
@@ -39,8 +40,19 @@ function set_Interpolation_Method!(method)
     nothing
 end
 
+@doc """
+    use_CSR()
+    use_CSC()
+设置近场阻抗矩阵是否采用CSR（CSC转置）。
 """
-获取插值算法
+use_CSR() = setfield(MLFMAParams, :useCSR, true)
+use_CSC() = setfield(MLFMAParams, :useCSR, false)
+
+@doc """
+    get_Interpolation_Method(method::Symbol)
+    get_Interpolation_Method(method::Union{Val{:Lagrange2Step}, Val{:Lagrange1Step}})
+
+获取插值算法。
 """
 get_Interpolation_Method(method::Symbol) = get_Interpolation_Method(Val(method))
 function get_Interpolation_Method(method::Union{Val{:Lagrange2Step}, Val{:Lagrange1Step}})

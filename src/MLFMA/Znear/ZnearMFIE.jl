@@ -2,7 +2,7 @@
 采用 RWG 基函数计算 MFIE 面积分（SIE）阻抗矩阵近场元并将结果放在ZnearCSC稀疏矩阵中
 """
 function calZnearCSCMFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
-                        ZnearCSC::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:RWG}
+                        Znear::ZnearT{CT}, ::Type{BFT}) where {IT<:Integer, FT<:Real, CT<:Complex{FT}, BFT<:RWG}
     
     # 本层盒子信息
     cubes   =   level.cubes
@@ -108,9 +108,9 @@ function calZnearCSCMFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
                         # 往矩阵填充结果
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
+                            Znear[m, n] += Zts[mi, ni]
                             !(m in cubeBFinterval) && begin
-                                ZnearCSC[n, m] += Zts[mi, ni]
+                                Znear[n, m] += Zts[mi, ni]
                             end
                         end
                     end
@@ -130,8 +130,8 @@ function calZnearCSCMFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] & nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                         end
                     end
                 else
@@ -153,8 +153,8 @@ function calZnearCSCMFIE!(level, trianglesInfo::Vector{TriangleInfo{IT, FT}},
 
                         # 判断是不是在源盒子、场盒子包含的区间内
                         ((msInInterval[mi] & nsInInterval[ni])) && begin
-                            ZnearCSC[m, n] += Zts[mi, ni]
-                            ZnearCSC[n, m] += Zst[ni, mi]
+                            Znear[m, n] += Zts[mi, ni]
+                            Znear[n, m] += Zst[ni, mi]
                         end
                     end
                     

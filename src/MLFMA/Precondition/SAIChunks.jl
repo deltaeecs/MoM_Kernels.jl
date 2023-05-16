@@ -1,9 +1,12 @@
 # 本文件提供计算稀疏近似逆预条件的函数
+"""
+    SAIChunkPrec{T} <: AbstractMatrix{T}
 
+分块系数近似逆的结构体。
+"""
 struct SAIChunkPrec{T} <: AbstractMatrix{T}
     mat::ZNEARCHUNK{T}
 end
-
 
 Base.show(io::IO, unused::MIME{Symbol("text/plain")}, M::SAIChunkPrec{T}) where {T} = show(io, unused, M.mat)
 Base.display(M::SAIChunkPrec{T}) where {T} = display(M.mat)
@@ -11,38 +14,33 @@ Base.size(M::SAIChunkPrec{T}) where {T} = size(M.mat)
 
 # nnz(M::SAIChunkPrec{T}) where {T} = nnz(M.mat)
 
-"""
-x .= M * x
+@doc """
+    ldiv!(M::SAIChunkPrec{T}, x::AbstractVector) where {T}
+    ldiv!(y::AbstractVector, M::SAIChunkPrec{T}, x::AbstractVector) where {T}
+
+实现 `x .= M * x` 或 `y .= M * x`。
 """
 function LinearAlgebra.ldiv!(M::SAIChunkPrec{T}, x::AbstractVector) where {T}
     mul!(x, M.mat, x)
 end
-
-"""
-y .= M * x
-"""
 function LinearAlgebra.ldiv!(y::AbstractVector, M::SAIChunkPrec{T}, x::AbstractVector) where {T}
     mul!(y, M.mat, x)
 end
 
-
 Base.eltype(::SAIChunkPrec{T}) where {T} = T
-
 Base.:\(M::SAIChunkPrec{T}, x::AbstractVector) where {T}= ldiv!(copy(x), M, x)
 
 """
-采用多线程计算稀疏近似逆 (Sparse Approximate Inverse (SAI)) 的函数
-输入为近场阻抗矩阵CSC, 叶层信息 (也可以为非叶层, 但计算量更大) 
-ZnearChunks::ZnearChunksStruct{CT}
-cubes::AbstractVector{CubeInfo{IT, FT}}
-该函数提供左预条件
+    sparseApproximateInversePl(ZnearChunks::ZnearChunksStruct{CT}, level; nbf = 0) where {FT<:Real, CT<:Complex{FT}}
+
+根据块状近场阻抗矩阵 `ZnearChunks` 和计算阻抗矩阵层的盒子信息 `cubes` 计算左稀疏近似逆 (Sparse Approximate Inverse (SAI)) 。
 """
 function sparseApproximateInversePl(ZnearChunks::ZnearChunksStruct{CT}, level; nbf = 0) where {FT<:Real, CT<:Complex{FT}}
 
     # 将本函数内的BLAS设为单线程
     nthds = nthreads()
     BLAS.set_num_threads(1)
-    # 首先预分配结果, 采用与 ZnearCSC 相同的稀疏模式
+    # 首先预分配结果, 采用与 Znear 相同的稀疏模式
     preM    =   deepcopy(ZnearChunks)
     
     cubes   =   level.cubes

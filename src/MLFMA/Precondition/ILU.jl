@@ -1,5 +1,7 @@
 """
-从 IncompleteLU.jl[https://github.com/haampie/IncompleteLU.jl.git] 
+    iluPrecondition(A, level; τ = 1e-3)
+
+从 (IncompleteLU.jl)[https://github.com/haampie/IncompleteLU.jl.git] 
 包实现ilu, 再次封装是因为要加入一些判断
 """
 function iluPrecondition(A, level; τ = 1e-3)
