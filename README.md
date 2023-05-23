@@ -8,8 +8,7 @@
 [![Build Status](https://github.com/deltaeecs/MoM_Kernels.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/deltaeecs/MoM_Kernels.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/deltaeecs/MoM_Kernels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/deltaeecs/MoM_Kernels.jl)
 
-![Size](https://img.shields.io/github/repo-size/deltaeecs/MoM_Kernels.jl
-)
+![Size](https://img.shields.io/github/repo-size/deltaeecs/MoM_Kernels.jl)
 ![Downloads](https://img.shields.io/github/downloads/deltaeecs/MoM_Kernels.jl/total)
 ![License](https://img.shields.io/github/license/deltaeecs/MoM_Kernels.jl)
 

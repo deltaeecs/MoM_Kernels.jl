@@ -150,9 +150,9 @@ end
 
 根据给定的盒子数 `nCubes` 、多极子数 `sizePoles`、进程数 `np` 返回该层辐射函数的三个维度的划分数量。
 """
-function get_partition(nCubes, sizePoles, np)
-    temp = slicedim2mpi((sizePoles, nCubes), np)
-    partition = (temp[1], 1, temp[2])
+function get_partition(nCubes, sizePoles, np; isleaf = false)
+    temp = slicedim2partition((sizePoles, nCubes), np)
+    partition = isleaf ? (1, 1, np) : (temp[1], 1, temp[2])
     return partition
 end
 
@@ -174,7 +174,7 @@ function saveLevel(level, np = ParallelParams.nprocs; dir="", kcubeIndices = not
     # 多极子数
     sizePoles   =   length(level.poles.r̂sθsϕs)
     # 层内划分
-    partition =   get_partition(length(cubes), sizePoles, np)
+    partition   =   get_partition(length(cubes), sizePoles, np; isleaf = level.isleaf)
     # 保存盒子并获取该层盒子的分布索引
     indices = saveCubes(cubes, partition; name = "Level_$(level.ID)_Cubes", dir=dir, kcubeIndices = kcubeIndices)
 

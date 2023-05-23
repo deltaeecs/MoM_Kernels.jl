@@ -3,12 +3,18 @@
 include("IntegralInterpolationInfo.jl")
 
 """
-盒子信息，包括
-子层盒子id的区间、
-包含的基函数区间、
-非空子盒子在8个子盒子中的id等、
-包含的网格如三角形、四面体的id，以基函数进行分，因此边界上的同一个网格可能被分到不同的盒子内。
-邻盒子的id、远亲盒子的id、本盒子在本层的三维整数坐标、本盒子在本层的三维全局坐标
+    CubeInfo{IT<:Integer, FT<:Real}
+盒子信息，包括：
+```
+kidsInterval    ::UnitRange{IT}     子层盒子id的区间
+bfInterval      ::UnitRange{IT}     包含的基函数区间
+kidsIn8         ::Vector{IT}        非空子盒子在8个子盒子中的id
+geoIDs          ::Vector{IT}        包含的网格如三角形、四面体的id，以基函数进行分，因此边界上的同一个网格可能被分到不同的盒子内。
+neighbors       ::Vector{IT}        邻盒子id
+farneighbors    ::Vector{IT}        远亲盒子的id
+ID3D            ::MVec3D{IT}        本盒子在本层的三维整数坐标
+center          ::MVec3D{FT}        本盒子在本层的三维全局坐标
+```
 """
 mutable struct CubeInfo{IT<:Integer, FT<:Real}
     kidsInterval    ::UnitRange{IT}
@@ -25,21 +31,27 @@ end
 abstract type AbstractLevel <: Any end
 
 """
-层信息
-ID          ::IT，层序号
-L           ::IT, 本层截断项数
-cubes       ::Vector{CubeInfo{IT, FT}} 包含每一个盒子信息的向量
-cubeEdgel   ::FT，本层盒子的边长
-poles       ::PolesInfo{IT, FT}, 多极子采样信息
-interpWθϕ   ::InterpInfo{IT, FT}, 插值信息
-aggS        ::Array{Complex{FT}, 3}， 聚合项
-disaggG     ::Array{Complex{FT}, 3}， 解聚项
-phaseShift2Kids  ::Array{Complex{FT}, 3}，本层盒子到子层盒子的相移因子 
-αTrans      ::Array{Complex{FT}, 3}， 本层盒子远亲组之间的转移因子，根据相对位置共有 7^3 - 3^3 = 316 个
-αTransIndex ::Array{IT, 2}, 远亲盒子的相对位置到其转移因子在所有转移因子数组的索引
+    LevelInfo{IT<:Integer, FT<:Real, IPT} <: AbstractLevel
+
+层信息：
+```
+ID          ::IT                        层序号
+isleaf      ::Bool                      是否为叶层
+L           ::IT                        本层截断项数
+cubes       ::Vector{CubeInfo{IT, FT}}  包含每一个盒子信息的向量
+cubeEdgel   ::FT                        本层盒子的边长
+poles       ::PolesInfo{IT, FT}         多极子采样信息
+interpWθϕ   ::InterpInfo{IT, FT}        插值信息
+aggS        ::Array{Complex{FT}, 3}     聚合项
+disaggG     ::Array{Complex{FT}, 3}     解聚项
+phaseShift2Kids  ::Array{Complex{FT}, 3}本层盒子到子层盒子的相移因子 
+αTrans      ::Array{Complex{FT}, 3}     本层盒子远亲组之间的转移因子，根据相对位置共有 7^3 - 3^3 = 316 个
+αTransIndex ::Array{IT, 2}              远亲盒子的相对位置到其转移因子在所有转移因子数组的索引
+```
 """
 mutable struct LevelInfo{IT<:Integer, FT<:Real, IPT} <: AbstractLevel
     ID          ::IT
+    isleaf      ::Bool
     L           ::IT
     nCubes      ::IT
     cubes       ::Vector{CubeInfo{IT, FT}}
@@ -54,22 +66,28 @@ mutable struct LevelInfo{IT<:Integer, FT<:Real, IPT} <: AbstractLevel
     αTransIndex ::OffsetArray{IT, 3, Array{IT, 3}}
 
     LevelInfo{IT, FT, IPT}() where {IT<:Integer, FT<:Real, IPT<:InterpInfo} = new{IT, FT, IPT}()
-    LevelInfo{IT, FT, IPT}(  ID, L, nCubes, cubes, cubeEdgel, poles, interpWθϕ, aggS, disaggG,
+    LevelInfo{IT, FT, IPT}(  ID, isleaf, L, nCubes, cubes, cubeEdgel, poles, interpWθϕ, aggS, disaggG,
                         phaseShift2Kids, phaseShiftFromKids, αTrans,  αTransIndex) where {IT<:Integer, FT<:Real, IPT<:InterpInfo} = 
-            new{IT, FT, IPT}(ID, L, nCubes, cubes, cubeEdgel, poles, interpWθϕ, aggS, disaggG,
+            new{IT, FT, IPT}(ID, isleaf, L, nCubes, cubes, cubeEdgel, poles, interpWθϕ, aggS, disaggG,
                         phaseShift2Kids, phaseShiftFromKids, αTrans,  αTransIndex)
 end
 
 
 """
-叶层LevelInfo的构造函数，输入为空间三维坐标数组
-nLevels::IT，层 数，亦为叶层层ID
-leafnodes::Matrix{FT},大小为 (3, n) 的用于分割成八叉树的空间点，如基函数的中心坐标
-cubeEdgel::FT，叶层盒子边长
-bigCubeLowerCoor::Vec3D{FT}， 大盒子的角坐标
+    setLevelInfo!(nLevels::Integer, leafnodes::Matrix{FT},cubeEdgel::FT, bigCubeLowerCoor::Vec3D{FT}[; 
+                    IPT = get_Interpolation_Method(MLFMAParams.InterpolationMethod), LT = LevelInfo]) where{FT<:Real}
+
+叶层 LevelInfo 的构造函数，输入信息：
+```
+nLevels::IT                 层数，亦为叶层层ID
+leafnodes::Matrix{FT}       大小为 (3, n) 的用于分割成八叉树的空间点，如基函数的中心坐标
+cubeEdgel::FT               叶层盒子边长
+bigCubeLowerCoor::Vec3D{FT} 大盒子的角坐标
+IPT                         插值算法类型
+LT = LevelInfo              层类
+```
 """
-function setLevelInfo!(nLevels::Integer, leafnodes::Matrix{FT},
-    cubeEdgel::FT, bigCubeLowerCoor::Vec3D{FT}; 
+function setLevelInfo!(nLevels::Integer, leafnodes::Matrix{FT}, cubeEdgel::FT, bigCubeLowerCoor::Vec3D{FT}; 
     IPT = get_Interpolation_Method(MLFMAParams.InterpolationMethod), LT = LevelInfo) where{FT<:Real}
     # 计算
     nleaves =   size(leafnodes, 2)
@@ -129,6 +147,7 @@ function setLevelInfo!(nLevels::Integer, leafnodes::Matrix{FT},
     end
     # 将相关项写入level
     level.ID        =   nLevels
+    level.isleaf    =   true
     level.L         =   L
     level.nCubes    =   nCubes
     level.cubes     =   cubesInfo
@@ -208,6 +227,7 @@ function setLevelInfo!(levelID::Integer, kidLevel, cubeEdgel::FT, bigCubeLowerCo
     end
     # 将相关项写入level
     level.ID        =   levelID
+    level.isleaf    =   false
     level.L         =   L
     level.nCubes    =   nCubes
     level.cubes     =   cubesInfo
