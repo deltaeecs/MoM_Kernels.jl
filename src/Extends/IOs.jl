@@ -122,7 +122,7 @@ function saveOctree(octree; dir="")
 
     fieldsKeept = (:nLevels, :leafCubeEdgel, :bigCubeLowerCoor)
 
-    @floop for k in fieldsKeept
+    for k in fieldsKeept
         # data[k] = getfield(octree, k)
         push!(ks, k)
         push!(vals, getfield(octree, k))
