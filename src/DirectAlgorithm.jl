@@ -22,7 +22,7 @@ function getImpedanceMatrix(geosInfo::Vector{ST}, nbf::Integer) where {ST<:Surfa
         end
     end
 
-    memory["全矩阵"] = Base.summarysize(Zmat)
+    SimulationParams.recordMem && begin memory["全矩阵"] = Base.summarysize(Zmat) end
 
     return Zmat
 end
@@ -33,7 +33,7 @@ function getImpedanceMatrix(geosInfo::Vector{VT}, nbf::Integer) where {VT<:Volum
         Zmat =   impedancemat4VIE(geosInfo, nbf, VSBFTypes.vbfType)
     end
 
-    memory["全矩阵"] = Base.summarysize(Zmat)
+    SimulationParams.recordMem && begin memory["全矩阵"] = Base.summarysize(Zmat) end
 
     return Zmat
 end
@@ -48,7 +48,7 @@ function getImpedanceMatrix(geosInfo::Vector{VT}, nbf::Integer) where {VT<:Abstr
         end
     end
 
-    memory["全矩阵"] = Base.summarysize(Zmat)
+    SimulationParams.recordMem && begin memory["全矩阵"] = Base.summarysize(Zmat) end
 
     return Zmat
 end

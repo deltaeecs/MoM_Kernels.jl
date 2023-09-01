@@ -66,7 +66,7 @@ function MLMFAIterator(Znear, octree::OctreeInfo{FT, LT},
 
     Zopt =  MLMFAIterator{Complex{FT}, Vector}(octree, Znear, vsCellsInfo, bfsInfo, aggSBF, disaggSBF, ZI)
 
-    record_memorys(Zopt)
+    SimulationParams.recordMem && begin record_memorys(Zopt) end
 
     return Zopt
 
