@@ -531,7 +531,7 @@ end
 """
 计算远区矩阵向量乘积
 """
-function calZfarI!(Zopt::MLMFAIterator{ZT, MT}, IVec::AbstractArray{T}; setzero = true) where {ZT, T<:Number, MT<:Vector}
+function calZfarI!(Zopt::MLFMAIterator{ZT, MT}, IVec::AbstractArray{T}; setzero = true) where {ZT, T<:Number, MT<:Vector}
 
     # 计算前置零
     setzero && fill!(Zopt.ZI, zero(T))

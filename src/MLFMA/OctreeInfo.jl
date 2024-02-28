@@ -211,6 +211,7 @@ function reOrderBasisFunctionAndGeoInfo!(bfReOrderID::Vector{IT}, geosInfo::Vect
     # 再更新几何单元内的基函数 id
     @threads for geo in geosInfo
         for ii in eachindex(geo.inBfsID)
+            0 == geo.inBfsID[ii] && continue
             geo.inBfsID[ii]  = oldNewIDpair[geo.inBfsID[ii], 2]
         end
     end # cube

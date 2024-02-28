@@ -4,7 +4,7 @@ include("OctreeInfo.jl")
 # 盒子内几何体 id 的计算函数
 include("SetGeoIDsInLevelCubes.jl")
 # 基于八叉树的迭代器
-include("MLMFAIterators.jl")
+include("MLFMAIterators.jl")
 
 """
 计算基函数中心的数组，用于方便混合基函数使用时的情况
