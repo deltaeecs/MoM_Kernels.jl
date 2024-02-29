@@ -358,7 +358,7 @@ end
 """
 计算远区矩阵的伴随矩阵向量乘积
 """
-function caladjZfarI!(adjZopt::Adjoint{ZT, MLMFAIterator{ZT, MT}}, IVec::AbstractArray{T}; setzero = true) where {ZT, T<:Number, MT<:Vector}
+function caladjZfarI!(adjZopt::Adjoint{ZT, MLFMAIterator{ZT, MT}}, IVec::AbstractArray{T}; setzero = true) where {ZT, T<:Number, MT<:Vector}
 
     Zopt = adjZopt.parent
     # 计算前置零

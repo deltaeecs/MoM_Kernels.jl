@@ -22,7 +22,7 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, tetras::Abs
     # 叶层盒子数量
     nCubes  =   cubesIndices.stop
     # Progress Meter
-    pmeter  =   Progress(nCubes; desc = "Calculating Znear (RWG + SWG)...", dt = 1)
+    pmeter  =   Progress(nCubes; desc = "Znear (RWG + SWG)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -171,7 +171,7 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, hexasInfo::
     # 线程锁防止对同一数据写入出错
     lockZ   =   SpinLock()
     # Progress Meter
-    pmeter = Progress(nCubes; desc = "Calculating Znear (RWG + RBF)...", dt = 1)
+    pmeter = Progress(nCubes; desc = "Znear (RWG + RBF)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         # 盒子
@@ -189,9 +189,6 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, hexasInfo::
         nNearCubeCal    =   0
         @inbounds for j in eachindex(cube.neighbors)
             jNearCube   =   cube.neighbors[j]
-            # del   由矩阵对称性可跳过编号较小的盒子
-            # 消除此项，仅由六面体id筛选即可！
-            # jNearCube <  iCube && continue
             nNearCubeCal += 1
             # 邻盒子
             nearCube    =   cubes[jNearCube]
@@ -214,9 +211,6 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, hexasInfo::
         nNearCubeGeoPtr =   1
         @inbounds for j in eachindex(cube.neighbors)
             jNearCube   =   cube.neighbors[j]
-            # del   由矩阵对称性可跳过编号较小的盒子
-            # 消除此项，仅由六面体id筛选即可！
-            # jNearCube <  iCube && continue
             # 邻盒子
             nearCube    =   cubes[jNearCube]
             # 写入邻六面体
@@ -323,7 +317,7 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
     # 线程锁防止对同一数据写入出错
     lockZ   =   SpinLock()
     # Progress Meter
-    pmeter  =   Progress(nCubes; desc = "Calculating Znear (RWG + PWC)...", dt = 1)
+    pmeter  =   Progress(nCubes; desc = "Znear (RWG + PWC)...", dt = 1)
     # 对盒子循环计算
     @threads for iCube in 1:nCubes
         next!(pmeter)
@@ -343,9 +337,6 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
         nNearCubeCal    =   0
         @inbounds for j in eachindex(cube.neighbors)
             jNearCube   =   cube.neighbors[j]
-            # del   由矩阵对称性可跳过编号较小的盒子
-            # 消除此项，仅由四面体id筛选即可！
-            # jNearCube <  iCube && continue
             nNearCubeCal += 1
             # 邻盒子
             nearCube    =   cubes[jNearCube]
@@ -368,9 +359,6 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
         nNearCubeGeoPtr =   1
         @inbounds for j in eachindex(cube.neighbors)
             jNearCube   =   cube.neighbors[j]
-            # del   由矩阵对称性可跳过编号较小的盒子
-            # 消除此项，仅由四面体id筛选即可！
-            # jNearCube <  iCube && continue
             # 邻盒子
             nearCube    =   cubes[jNearCube]
             # 写入邻四面体
@@ -405,53 +393,32 @@ function calZnearCSCEFIE!(level, tris::Vector{TriangleInfo{IT, FT}}, geosInfo::A
                 # 源四面体包含的四个源基函数是否在所有邻盒子（测试盒子）的基函数（测试基函数）区间内
                 nsInInterval    =   [n in cubeBFinterval for n in geos.inBfsID]
 
-                if Rts < Rsglrlc
-                    # 需要进行近奇异性处理的场源四面体
-                    Zts, Zst    =   EFIEOnNearRWGPWC(geot, geos)
-                    # 写入数据
-                    for ni in 1:3, mi in 1:3
-                        # 基函数id
-                        m = geot.inBfsID[mi]
-                        n = geos.inBfsID[ni]
-                        # RWG基函数不设半基函数因此跳过
-                        (m == 0) && continue
-                        # 判断是不是在源盒子、场盒子包含的区间内
-                        ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            lock(lockZ)
-                            if discreteJ
-                                Znear[m, n]  +=  Zts[mi, ni]
-                            else
-                                Znear[m, n]  +=  Zts[mi, ni] * κs
-                            end
-                            Znear[n, m] += Zst[ni, mi]
-                            unlock(lockZ)
-                        end
-                    end
+                # 在不同情况下计算 Zts, Zst
+                Zts, Zst    =  if Rts < Rsglrlc
+                    # 需要进行近奇异性处理的 (3*3) 个矩阵元的结果
+                    EFIEOnNearRWGPWC(geot, geos)
                 else
                     # 正常高斯求积
-                    # 计算四面体相关的(4*4)个矩阵元的结果
-                    Zts, Zst    =   EFIEOnRWGPWC(geot, geos)
-                    # 写入数据
-                    for ni in 1:3, mi in 1:3
-                        # 基函数id
-                        m = geot.inBfsID[mi]
-                        n = geos.inBfsID[ni]
-                        # RWG基函数不设半基函数因此跳过
-                        (m == 0) && continue
-                        # 判断是不是在源盒子、场盒子包含的区间内
-                        ((msInInterval[mi] && nsInInterval[ni])) && begin
-                            lock(lockZ)
-                            if discreteJ
-                                Znear[m, n]  +=  Zts[mi, ni]
-                            else
-                                Znear[m, n]  +=  Zts[mi, ni] * κs
-                            end
-                            Znear[n, m] += Zst[ni, mi]
-                            unlock(lockZ)
+                    # 计算相关的 (3*3) 个矩阵元的结果
+                    EFIEOnRWGPWC(geot, geos)
+                end
+                # 写入数据
+                for ni in 1:3, mi in 1:3
+                    # 基函数id
+                    m = geot.inBfsID[mi]
+                    n = geos.inBfsID[ni]
+                    # RWG基函数不设半基函数因此跳过
+                    (m == 0) && continue
+                    # 判断是不是在源盒子、场盒子包含的区间内
+                    ((msInInterval[mi] && nsInInterval[ni])) && begin
+                        if discreteJ
+                            Znear[m, n]  +=  Zts[mi, ni]
+                        else
+                            Znear[m, n]  +=  Zts[mi, ni] * κs
                         end
+                        Znear[n, m] += Zst[ni, mi]
                     end
-                    
-                end # if
+                end
 
             end #jGeo
         end #iGeo

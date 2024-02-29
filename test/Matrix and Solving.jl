@@ -31,7 +31,7 @@ function test_opt_solving(geosInfo, bfsInfo; source = nothing)
     @test true
 
     # 构建矩阵向量乘积算子
-    Zopt  =   MLMFAIterator(Znear, octree, geosInfo, bfsInfo);
+    Zopt  =   MLFMAIterator(Znear, octree, geosInfo, bfsInfo);
     @test true
 
     ## 根据近场矩阵和八叉树计算 SAI 左预条件

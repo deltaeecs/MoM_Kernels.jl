@@ -3,14 +3,14 @@ abstract type ZNEARCHUNK{T} <: AbstractMatrix{T} end
 """
 创建近场矩阵结构体，所包含的数据为所有盒子内的近场矩阵元，多线程版本
 ```
-m::Int，行数
-n::Int，列数
-nChunks::Int，矩阵块儿数
-chunks::Vector{ZnearChunksStruct{T}}，矩阵
-lmul::Vector{T}，用于左乘其它矩阵、向量的临时数组，大小与列数相同
-lmuld::Vector{T}，用于左乘其它矩阵、向量的临时分布式数组，大小与列数相同，默认不分配
-rmul::Vector{T}，用于右乘其它矩阵、向量的临时数组，大小与行数相同
-lmuld::Vector{T}，用于左乘其它矩阵、向量的临时分布式数组，大小与列数相同，默认不分配
+m::Int                  行数
+n::Int                  列数
+nChunks::Int            矩阵块儿数
+chunks::Vector{ZnearChunksStruct{T}}    矩阵
+lmul::Vector{T}         用于左乘其它矩阵、向量的临时数组，大小与列数相同
+lmuld::Vector{T}        用于左乘其它矩阵、向量的临时分布式数组，大小与列数相同，默认不分配
+rmul::Vector{T}         用于右乘其它矩阵、向量的临时数组，大小与行数相同
+lmuld::Vector{T}        用于左乘其它矩阵、向量的临时分布式数组，大小与列数相同，默认不分配
 ```
 """
 mutable struct ZnearChunksStruct{T<:Number} <: ZNEARCHUNK{T}
@@ -25,7 +25,9 @@ mutable struct ZnearChunksStruct{T<:Number} <: ZNEARCHUNK{T}
 end
 
 """
-ZnearChunksStruct 类的初始化函数，将 lumld 和 rmuld 初始化为
+    ZnearChunksStruct{T}(chunks; m, n) where {T<:Number}
+
+ZnearChunksStruct 类的初始化函数。
 """
 function ZnearChunksStruct{T}(chunks; m, n) where {T<:Number}
 
@@ -71,6 +73,8 @@ function getindex(Z::T, i1::Int, i2::Int) where{T<:ZNEARCHUNK}
 end
 
 """
+    setindex!(Z::T, x, i1::Int, i2::Int) where{T<:ZNEARCHUNK}
+
 重载 setindex! 函数
 """
 function setindex!(Z::T, x, i1::Int, i2::Int) where{T<:ZNEARCHUNK}
@@ -87,7 +91,9 @@ end
 
 
 """
-初始化 阻抗矩阵 左乘 向量 乘积的 分布式数组
+    initialZchunksMulV!(Z::T) where{T<:ZnearChunksStruct}
+
+初始化 阻抗矩阵 左乘 向量 乘积的 分布式数组。
 """
 function initialZchunksMulV!(Z::T) where{T<:ZnearChunksStruct}
 
@@ -97,6 +103,8 @@ function initialZchunksMulV!(Z::T) where{T<:ZnearChunksStruct}
 end
 
 """
+    initialVMulZchunks!(Z::T) where{T<:ZnearChunksStruct}
+
 初始化 阻抗矩阵 右乘 向量 乘积的 分布式数组
 """
 function initialVMulZchunks!(Z::T) where{T<:ZnearChunksStruct}
@@ -107,6 +115,8 @@ end
 
 
 """
+    Base.:*(Z::T, x::AbstractVector) where{T<:ZnearChunksStruct}
+
 实现左乘其它向量
 """
 function Base.:*(Z::T, x::AbstractVector) where{T<:ZnearChunksStruct}
@@ -139,7 +149,7 @@ end
 """
     get_chunks_minmax_col(matchunks)
 
-TBW
+
 """
 function get_chunks_minmax_col(matchunks)::UnitRange{Int64}
 
@@ -151,6 +161,8 @@ function get_chunks_minmax_col(matchunks)::UnitRange{Int64}
 end
 
 """
+    Base.:*(Z::ZNEARCHUNK{T}, mat::AbstractMatrix) where{T<:Number}
+
 实现左乘其它矩阵
 """
 function Base.:*(Z::ZNEARCHUNK{T}, mat::AbstractMatrix) where{T<:Number}

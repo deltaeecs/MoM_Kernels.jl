@@ -45,7 +45,7 @@ function getImpedanceOpt(geosInfo, bfsInfo)
     # 计算近场矩阵CSC
     Znear    =   calZnearCSC(leafLevel, geosInfo, bfsInfo)
     # 构建矩阵向量乘积算子
-    Zopt    =   MLMFAIterator(Znear, octree, geosInfo, bfsInfo)
+    Zopt    =   MLFMAIterator(Znear, octree, geosInfo, bfsInfo)
     # 返回
     Zopt
 end
