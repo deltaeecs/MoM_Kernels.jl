@@ -309,7 +309,7 @@ Jtri         ::Marrix{Complex{FT}}, 三角形上加权后的电流
     Jtris   =   zeros(CT, 3, GQPNTri, ntri)
 
     # Progress Meter
-    pmeter  =   Progress(ntri, "Calculating J on triangles' gaussquad points ($GQPNTri × $ntri)")
+    pmeter  =   Progress(ntri; desc = "Calculating J on triangles' gaussquad points ($GQPNTri × $ntri)")
 
     # 对三角形循环计算
     @threads for ti in 1:ntri

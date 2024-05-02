@@ -782,7 +782,7 @@ function impedancemat4VIE!(Zmat::Matrix{CT}, hexasInfo::AbstractVector{Hexahedra
     lockZ   =   SpinLock()
     nbf     =   size(Zmat, 1)
     # Progress Meter
-    pmeter  =   Progress(hexasnum, "Calculating Z (RBF, EFIE) ($nbf × $nbf)...")
+    pmeter  =   Progress(hexasnum; desc = "Calculating Z (RBF, EFIE) ($nbf × $nbf)...")
     # 外层定义为场基函数循环
     @threads for it in geoInterval
         # 局域的场六面体

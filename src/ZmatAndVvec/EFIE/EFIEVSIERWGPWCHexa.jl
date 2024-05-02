@@ -185,7 +185,7 @@ function impedancemat4RWGPWC!(Zmat::Matrix{CT}, trisInfo::AbstractVector{Triangl
     # 矩阵大小
     nbf     =   size(Zmat, 1)
     # Progress Meter
-    pmeter  =   Progress(trinum, "Calculating Z (RWG + PWC) ($nbf × $nbf)...")
+    pmeter  =   Progress(trinum; desc = "Calculating Z (RWG + PWC) ($nbf × $nbf)...")
     # 外层定义为场基函数循环
     @threads for it in eachindex(trisInfo)
         # 局域的场网格元（几何体）@inbounds

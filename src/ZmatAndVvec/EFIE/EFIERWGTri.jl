@@ -290,7 +290,7 @@ function impedancemat4EFIE4PEC!(Zmat::Matrix{Complex{FT}}, trianglesInfo::Vector
     # 矩阵大小
     nbf     =   size(Zmat, 1)
     # Progress Meter
-    pmeter  =   Progress(trisnum, "Calculating Z (RWG, EFIE) ($nbf × $nbf)")
+    pmeter  =   Progress(trisnum; desc = "Calculating Z (RWG, EFIE) ($nbf × $nbf)")
 
     # 外层定义为场基函数循环
     @threads for triti in trisIdx
