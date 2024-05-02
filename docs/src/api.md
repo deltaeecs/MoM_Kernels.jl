@@ -3,5 +3,5 @@
 ```
 
 ```@autodocs
-Modules = [MoM_Kernels, MoM_Basics]
+Modules = [MoM_Kernels]
 ```
