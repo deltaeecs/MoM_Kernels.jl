@@ -13,6 +13,7 @@ makedocs(;
         canonical="https://deltaeecs.github.io/MoM_Kernels.jl",
         edit_link="master",
         assets=String[],
+        size_threshold_ignore = ["index.md", "api.md"],
     ),
     pages=[
         "Home" => "index.md",
