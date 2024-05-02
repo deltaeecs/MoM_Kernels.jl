@@ -242,7 +242,7 @@ function impedancemat4VIE!(Zmat::Matrix{CT}, tetrasInfo::AbstractVector{Tetrahed
     Rsglr       =   Params.Rsglr
     # Progress Meter
     nbf     =   size(Zmat, 1)
-    pmeter  =   Progress(tetrasnum, "Calculating Z (PWC)($nbf × $nbf)")
+    pmeter  =   Progress(tetrasnum; desc = "Calculating Z (PWC)($nbf × $nbf)")
     # 外层定义为场基函数循环
     @threads for ti in geoInterval
         # 局域的场四面体
@@ -356,7 +356,7 @@ end
 #     Rsglr       =   Params.Rsglr
 #     # Progress Meter
 #     nbf     =   size(Zmat, 1)
-#     pmeter  =   Progress(tetrasnum, "Calculating Z (PWC)($nbf × $nbf)")
+#     pmeter  =   Progress(tetrasnum; desc = "Calculating Z (PWC)($nbf × $nbf)")
 #     # 外层定义为场基函数循环
 #     @threads for ti in geoInterval
 #         # 局域的场四面体

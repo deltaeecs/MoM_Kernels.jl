@@ -68,7 +68,7 @@ function aggSBFOnLevelEFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{Tria
     ntri = length(trianglesInfo)
 
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Aggregating on RWG (EFIE)...")
+    pmeter  =   Progress(nCubes; desc = "Aggregating on RWG (EFIE)...")
     # 对盒子循环计算
     @threads for iCube in eachindex(cubes)
         # 盒子
@@ -199,7 +199,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{Tet
     # 是否为偏置数组
     geoInterval =   getGeosInterval(tetrasInfo)
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Aggregating on SWG (EFIE)...")
+    pmeter  =   Progress(nCubes; desc = "Aggregating on SWG (EFIE)...")
     # 对盒子循环计算
     @threads for iCube in eachindex(cubes)
         
@@ -323,7 +323,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, tetrasInfo::AbstractVector{Tet
     # 判断体电流的离散方式
     discreteJ::Bool = SimulationParams.discreteVar === "J"
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Aggregating on PWC (EFIE)...")
+    pmeter  =   Progress(nCubes; desc = "Aggregating on PWC (EFIE)...")
     # 对盒子循环计算
     @threads for iCube in eachindex(cubes)
         
@@ -425,7 +425,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{Hexa
     JK_0 = Params.JK_0
     CT0  = zero(CT)
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Aggregating on PWC (EFIE)...")
+    pmeter  =   Progress(nCubes; desc = "Aggregating on PWC (EFIE)...")
     # 对盒子循环计算
     @threads for iCube in eachindex(cubes)
         
@@ -528,7 +528,7 @@ function aggSBFOnLevel!(aggSBF, disaggSBF, level, hexasInfo::AbstractVector{VT},
     geoInterval =   getGeosInterval(hexasInfo)
     
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Aggregating on RBF (EFIE)...")
+    pmeter  =   Progress(nCubes; desc = "Aggregating on RBF (EFIE)...")
     # 对盒子循环计算
     @threads for iCube in eachindex(cubes)
         

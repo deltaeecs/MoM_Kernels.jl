@@ -52,7 +52,7 @@ function aggSBFOnLevelMFIE!(aggSBF, disaggSBF, level, trianglesInfo::Vector{Tria
     ntri = length(trianglesInfo)
 
     # Progress Meter
-    pmeter  =   Progress(nCubes, "Aggregating on RWG (MFIE)...")
+    pmeter  =   Progress(nCubes; desc = "Aggregating on RWG (MFIE)...")
     # 对盒子循环计算
     @threads for iCube in eachindex(cubes)
         # 盒子

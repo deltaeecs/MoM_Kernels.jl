@@ -226,7 +226,7 @@ function saveCubes(cubes, partition; name, dir="", kcubeIndices = nothing)
     # 拿到各块的包含邻盒子的id
     cubesFarNeighbors_ChunksIndices    =   ThreadsX.mapi(chunkIndice -> getNeiFarNeighborCubeIDs(cubes, chunkIndice), indices)
 
-    pmeter  =  Progress(length(indices), "Saving cubes...")
+    pmeter  =  Progress(length(indices); desc = "Saving cubes...")
 
     # 重新组合 kcubeIndices，以避免层间分区不在同一维度时 子盒子区间计算错误
     kindices =  isnothing(kcubeIndices) ? nothing : get_partition_map(partition, kcubeIndices)

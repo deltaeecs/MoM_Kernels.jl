@@ -318,15 +318,15 @@ function impedancemat4RWGRBF!(Zmat::Matrix{CT}, trisInfo::AbstractVector{Triangl
     # 矩阵大小
     nbf     =   size(Zmat, 1)
     # Progress Meter
-    pmeter  =   Progress(trinum, "Calculating Z (RWG + RBF) ($nbf × $nbf)...")
+    pmeter  =   Progress(trinum; desc = "Calculating Z (RWG + RBF) ($nbf × $nbf)...")
     # 外层定义为场基函数循环
     @threads for it in eachindex(trisInfo)
         # 局域的场网格元（几何体）@inbounds
-         trit  =   trisInfo[it]
+        trit  =   trisInfo[it]
         # 局部判断奇异性距离
         Rsglrlc =   Rsglr
         # 对源网格元（几何体）循环@inbounds
-         for js in eachindex(hexasInfo)
+        for js in eachindex(hexasInfo)
             # 局域的源网格元（几何体）
             hexas    =   hexasInfo[js]
             # 场源距离

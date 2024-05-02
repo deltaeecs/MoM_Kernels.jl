@@ -48,7 +48,7 @@ function sparseApproximateInversePl(Znear::ZnearT{CT}, cubes::AbstractVector) wh
         nCubes  =   length(cubes)
 
         # 进度条
-        pmeter  =   Progress(nCubes, "Pₗ")
+        pmeter  =   Progress(nCubes; desc = "Pₗ")
 
         # Znn ZnnH 按线程预分配内存
         Znnts       =   [zeros(CT, 1) for _ in 1:nthds]
@@ -149,7 +149,7 @@ function sparseApproximateInversePr(Znear::ZnearT{CT}, cubes::AbstractVector) wh
         nCubes  =   length(cubes)
 
         # 进度条
-        pmeter  =   Progress(nCubes, "Calculating SAI right preconditioner...")
+        pmeter  =   Progress(nCubes; desc = "Calculating SAI right preconditioner...")
 
         # Znn ZnnH 按线程预分配内存
         Znnts       =   [zeros(CT, 1) for _ in 1:nthds]

@@ -48,7 +48,7 @@ function sparseApproximateInversePl(ZnearChunks::ZnearChunksStruct{CT}, level; n
     nCubes  =   length(cubes)
 
     # 进度条
-    pmeter  =   Progress(nCubes, "Pₗ (T) ...")
+    pmeter  =   Progress(nCubes; desc = "Pₗ (T) ...")
     
     # 对所有盒子循环
     @threads for iCube in 1:nCubes

@@ -226,7 +226,7 @@ Zmat        :  阻抗矩阵
 #     Rsglr   =   Params.Rsglr
 #     # Progress Meter
 #     nbf     =   size(Zmat, 1)
-#     pmeter  =   Progress(hexasnum, "Calculating Z (PWC)($nbf × $nbf)...")
+#     pmeter  =   Progress(hexasnum; desc = "Calculating Z (PWC)($nbf × $nbf)...")
 #     # 外层定义为场基函数循环
 #     @threads for ti in geoInterval
 #         # 局域的场六面体
@@ -321,7 +321,7 @@ function impedancemat4VIE!(Zmat::Matrix{CT}, hexasInfo::AbstractVector{Hexahedra
     Rsglr   =   Params.Rsglr
     # Progress Meter
     nbf     =   size(Zmat, 1)
-    pmeter  =   Progress(hexasnum, "Calculating Z (PWC)($nbf × $nbf)...")
+    pmeter  =   Progress(hexasnum; desc = "Calculating Z (PWC)($nbf × $nbf)...")
     # 外层定义为场基函数循环
     @threads for ti in geoInterval
         # 局域的场六面体

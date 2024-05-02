@@ -28,7 +28,7 @@ function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT},
     RCSθsϕsrsp  =   reshape(RCSθsϕs, (2, nobs))
     
     # 进度条
-    pmeter  =   Progress(nobs, "Calculating RCS ($Nθ_obs × $Nϕ_obs)")
+    pmeter  =   Progress(nobs; desc = "Calculating RCS ($Nθ_obs × $Nϕ_obs)")
     # 计算RCS
     @threads for ii in 1:nobs
         # 辐射积分
@@ -81,7 +81,7 @@ function radarCrossSection(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vecto
     RCSθsϕsrsp  =   reshape(RCSθsϕs, (2, nobs))
     
     # 进度条
-    pmeter  =   Progress(nobs, "Calculating RCS ($(length(θs_obs)) × $(length(ϕs_obs))))")
+    pmeter  =   Progress(nobs; desc = "Calculating RCS ($(length(θs_obs)) × $(length(ϕs_obs))))")
     # 计算RCS
     @threads for ii in 1:nobs
         # 辐射积分
@@ -140,7 +140,7 @@ function radarCrossSection(θs_obs, ϕs_obs,
     RCSθsϕsrsp  =   reshape(RCSθsϕs, (2, nobs))
     
     # 进度条
-    pmeter  =   Progress(nobs, "Calculating RCS ($(length(θs_obs)) × $(length(ϕs_obs))))")
+    pmeter  =   Progress(nobs; desc = "Calculating RCS ($(length(θs_obs)) × $(length(ϕs_obs))))")
     # 计算RCS
     @threads for ii in 1:nobs
         # 辐射积分

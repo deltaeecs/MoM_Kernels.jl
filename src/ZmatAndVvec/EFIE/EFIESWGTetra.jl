@@ -726,7 +726,7 @@ function impedancemat4VIE!(Zmat::Matrix{CT}, tetrasInfo::AbstractVector{Tetrahed
     # 矩阵大小
     nbf     =   size(Zmat, 1)
     # Progress Meter
-    pmeter  =   Progress(tetrasnum, "Calculating Z (SWG, EFIE) ($nbf × $nbf)")
+    pmeter  =   Progress(tetrasnum; desc = "Calculating Z (SWG, EFIE) ($nbf × $nbf)")
     # 外层定义为场基函数循环
     @threads for it in geoInterval
         # 局域的场四面体

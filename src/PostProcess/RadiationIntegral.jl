@@ -226,7 +226,7 @@ function raditionalIntegralNCal(θs_obs, ϕs_obs, geosInfo::Vector{TriangleInfo{
     Nθsϕsrsp    =   reshape(Nθsϕs, (2, nobs))
 
     # Progress Meter
-    pmeter  =   Progress(nobs, "Calculating radiational integral ($Nθ_obs × $Nϕ_obs)")
+    pmeter  =   Progress(nobs; desc = "Calculating radiational integral ($Nθ_obs × $Nϕ_obs)")
     # 输入的为高斯求积点电流则提取中心值
     Jgeos2 = if typeof(Jgeos)<:Array{CT, 3}
         Jgeos[:, 1, :]

@@ -133,7 +133,7 @@ function setLevelTransFactor!(nLevels::Int, levels::Dict{Int, LV}) where{LV<:Abs
 
     
     # 进度条
-    pmeter = Progress(length(2:nLevels), "Calculating translation factors...")
+    pmeter = Progress(length(2:nLevels); desc = "Calculating translation factors...")
 
     # 从 第“2”层开始计算到 叶 层计算子层到本层的转移因子
     for iLevel in 2:nLevels
@@ -175,7 +175,7 @@ function calαTransOnLevel!(level, truncL, all316FarNeighID, all343InFar316)
     # 预分配内存
     αTrans  =   zeros(Complex{FT}, nPoles, 316)
 
-    pmeter  =   Progress(316, "Calculating translation factors on level $(level.ID)...")
+    pmeter  =   Progress(316; desc = "Calculating translation factors on level $(level.ID)...")
     
     @floop WorkStealingEx() for iFarNei in 1:316
         # 本层盒子中心到远亲盒子中心之间的 对应的 316 个 偏置向量

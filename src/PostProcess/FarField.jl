@@ -28,7 +28,7 @@ function farField(θs_obs, ϕs_obs,
     farEθsϕsrsp =   reshape(farEθsϕs, (2, nobs))
     
     # 进度条
-    pmeter  =   Progress(nobs, "Calculating farE ($Nθ_obs × $Nϕ_obs)")
+    pmeter  =   Progress(nobs; desc = "Calculating farE ($Nθ_obs × $Nϕ_obs)")
     # 计算farE
     @threads for ii in 1:nobs
         # 辐射积分
@@ -82,7 +82,7 @@ function farField(θs_obs, ϕs_obs, ICoeff::Vector{CT}, geosInfo::Vector{VT}, so
     farEθsϕsrsp  =   reshape(farEθsϕs, (2, nobs))
     
     # 进度条
-    pmeter  =   Progress(nobs, "Calculating farE ($(length(θs_obs)) × $(length(ϕs_obs))))")
+    pmeter  =   Progress(nobs; desc = "Calculating farE ($(length(θs_obs)) × $(length(ϕs_obs))))")
     # 计算farE
     @threads for ii in 1:nobs
         # 辐射积分
@@ -145,7 +145,7 @@ function farField(θs_obs, ϕs_obs,
     
 
     # 进度条
-    pmeter  =   Progress(nobs, "Calculating farE ($(length(θs_obs)) × $(length(ϕs_obs))))")
+    pmeter  =   Progress(nobs; desc = "Calculating farE ($(length(θs_obs)) × $(length(ϕs_obs))))")
     # 计算farE
     @threads for ii in 1:nobs
         # 辐射积分
@@ -203,7 +203,7 @@ function farField(θs_obs, ϕs_obs, source; str::String = "")
     farEθsϕsrsp =   reshape(farEθsϕs, (2, nobs))
     
     # 进度条
-    pmeter  =   Progress(nobs, "Calculating source farE ($Nθ_obs × $Nϕ_obs)")
+    pmeter  =   Progress(nobs; desc = "Calculating source farE ($Nθ_obs × $Nϕ_obs)")
     # 计算farE
     @threads for ii in 1:nobs
         # 天线的远场电场
